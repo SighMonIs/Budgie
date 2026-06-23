@@ -9,6 +9,7 @@ import AdjustFundsModal from './components/AdjustFundsModal';
 import AddBillModal from './components/AddBillModal';
 import BonusPaydayCard from './components/BonusPaydayCard';
 import CategoryModal, { Category } from './components/CategoryModal';
+import SavingsChecklist from './components/SavingsChecklist';
 import { Bill } from './types';
 
 export default function App() {
@@ -158,7 +159,11 @@ export default function App() {
                 )}
               </button>
               <button
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                onClick={() => {
+                  const next = theme === 'dark' ? 'light' : 'dark';
+                  setTheme(next);
+                  fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: next }) });
+                }}
                 title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                 style={{
                   flexShrink: 0, alignSelf: 'stretch', padding: '0 14px', borderRadius: 10,
@@ -223,6 +228,12 @@ export default function App() {
                 thirdPayMonth={data.nextThirdPay}
               />
             )}
+
+            <SavingsChecklist
+              items={data.savings}
+              nextPayday={data.nextPayday}
+              onContribute={async (id) => { await fetch(`/api/bills/${id}/contribute`, { method: 'POST' }); load(); }}
+            />
           </div>
         </div>
       </div>

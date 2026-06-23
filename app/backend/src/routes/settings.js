@@ -24,16 +24,18 @@ router.get('/', (req, res) => {
 
 router.put('/', (req, res) => {
   const db = getDb();
-  const { currency, pay_amount, pay_frequency, next_payday, theme, accent, pending_pay_amount, pending_pay_date } = req.body;
-  db.prepare(`
-    UPDATE settings
-    SET currency=?, pay_amount=?, pay_frequency=?, next_payday=?, theme=?, accent=?,
-        pending_pay_amount=?, pending_pay_date=?
-    WHERE id=1
-  `).run(
-    currency, pay_amount, pay_frequency, next_payday, theme, accent,
-    pending_pay_amount ?? null, pending_pay_date ?? null
-  );
+  const allowed = ['currency', 'pay_amount', 'pay_frequency', 'next_payday', 'theme', 'accent', 'pending_pay_amount', 'pending_pay_date'];
+  const updates = [];
+  const values = [];
+  for (const key of allowed) {
+    if (key in req.body) {
+      updates.push(`${key}=?`);
+      values.push(req.body[key] ?? null);
+    }
+  }
+  if (updates.length === 0) return res.json({ ok: true });
+  values.push(1);
+  db.prepare(`UPDATE settings SET ${updates.join(', ')} WHERE id=?`).run(...values);
   res.json({ ok: true });
 });
 
