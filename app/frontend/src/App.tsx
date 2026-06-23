@@ -89,7 +89,7 @@ export default function App() {
               const savingsCat = categories.find(c => c.slug === 'savings');
               return <>
                 <BillsSection
-                  title="Bills"
+                  title={billsCat?.name ?? 'Bills'}
                   accentColor={billsCat?.color ?? '#ff6b5e'}
                   items={data.bills}
                   total={data.totals.bills}
@@ -100,7 +100,7 @@ export default function App() {
                 />
 
                 <BillsSection
-                  title="Subscriptions"
+                  title={subsCat?.name ?? 'Subscriptions'}
                   accentColor={subsCat?.color ?? '#54a0ff'}
                   items={data.subscriptions}
                   total={data.totals.subscriptions}
@@ -111,6 +111,7 @@ export default function App() {
                 />
 
                 <SavingsSection
+                  title={savingsCat?.name ?? 'Savings'}
                   items={data.savings}
                   total={data.totals.savings}
                   accentColor={savingsCat?.color ?? '#feca57'}

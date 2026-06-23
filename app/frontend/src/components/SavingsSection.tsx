@@ -3,6 +3,7 @@ import { Bill } from '../types';
 import { fmtAUD } from '../utils';
 
 interface Props {
+  title?: string;
   items: Bill[];
   total: number;
   accentColor?: string;
@@ -12,7 +13,7 @@ interface Props {
   onEditCategory?: () => void;
 }
 
-export default function SavingsSection({ items, total, accentColor = '#feca57', editMode, onAdd, onEdit, onEditCategory }: Props) {
+export default function SavingsSection({ title = 'Savings', items, total, accentColor = '#feca57', editMode, onAdd, onEdit, onEditCategory }: Props) {
   const COLOR = accentColor;
   return (
     <div style={{
@@ -26,7 +27,7 @@ export default function SavingsSection({ items, total, accentColor = '#feca57', 
         borderBottom: `1px solid ${COLOR}25`,
       }}>
         <span style={{ width: 10, height: 10, borderRadius: 3, background: COLOR, flexShrink: 0 }} />
-        <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em' }}>Savings</div>
+        <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em' }}>{title}</div>
         {editMode && onEditCategory && (
           <button onClick={onEditCategory} title="Edit category" style={{
             background: 'transparent', border: 'none', cursor: 'pointer',
