@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Totals } from '../types';
 import { fmtAUD, formatDate } from '../utils';
+import { Category } from './CategoryModal';
 
 const FREQ_LABELS: Record<string, string> = {
   weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly',
@@ -13,9 +14,10 @@ interface Props {
   pendingPay?: { amount: number; effectiveDate: string } | null;
   editMode: boolean;
   onSaved: () => void;
+  categories: Category[];
 }
 
-export default function PayHeader({ totals, nextPayday, frequency, pendingPay, editMode, onSaved }: Props) {
+export default function PayHeader({ totals, nextPayday, frequency, pendingPay, editMode, onSaved, categories }: Props) {
   const { pay, bills, subscriptions, savings, leftover } = totals;
 
   // Draft state for inline editing
@@ -46,19 +48,26 @@ export default function PayHeader({ totals, nextPayday, frequency, pendingPay, e
   const displayPay  = editMode ? Math.round(parseFloat(draftPay || '0') * 100) : pay;
   const displayFreq = editMode ? draftFreq : frequency;
 
-  const billsPct = bills / pay * 100;
-  const subsPct  = subscriptions / pay * 100;
-  const savPct   = savings / pay * 100;
-  const b2  = billsPct;
-  const s2  = b2 + subsPct;
-  const sv2 = s2 + savPct;
-  const donutBg = `conic-gradient(#ff6b5e 0% ${b2}%, #54a0ff ${b2}% ${s2}%, #feca57 ${s2}% ${sv2}%, rgba(140,143,156,0.28) ${sv2}% 100%)`;
+  const totalsMap: Record<string, number> = { bills, subscriptions, savings };
+  const catStats = categories.map(c => ({
+    label: c.name,
+    value: totalsMap[c.slug ?? ''] ?? 0,
+    color: c.color,
+    pct:   (totalsMap[c.slug ?? ''] ?? 0) / pay * 100,
+  }));
+
+  // Build donut gradient from categories + leftover
+  let cursor = 0;
+  const donutSegments = catStats.map(s => {
+    const seg = `${s.color} ${cursor}% ${cursor + s.pct}%`;
+    cursor += s.pct;
+    return seg;
+  });
+  const donutBg = `conic-gradient(${[...donutSegments, `rgba(140,143,156,0.28) ${cursor}% 100%`].join(', ')})`;
 
   const stats = [
-    { label: 'Bills',         value: bills,         color: '#ff6b5e' },
-    { label: 'Subscriptions', value: subscriptions, color: '#54a0ff' },
-    { label: 'Savings',       value: savings,       color: '#feca57' },
-    { label: 'Leftover',      value: leftover,      color: 'var(--accent)' },
+    ...catStats,
+    { label: 'Leftover', value: leftover, color: 'var(--accent)' },
   ];
 
   const fieldStyle: React.CSSProperties = {

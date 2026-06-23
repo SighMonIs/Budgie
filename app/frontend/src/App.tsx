@@ -72,6 +72,7 @@ export default function App() {
               pendingPay={data.pendingPay}
               editMode={editMode}
               onSaved={load}
+              categories={categories}
             />
 
             {editMode && (
