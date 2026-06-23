@@ -38,6 +38,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
   const [payees, setPayees] = useState<Payee[]>([]);
   const [accountId, setAccountId] = useState<string>(bill?.account_id ? String(bill.account_id) : '');
   const [useAverage, setUseAverage] = useState(bill?.use_average === 1);
+  const [savingsMode, setSavingsMode] = useState<'manual' | 'auto'>(bill?.savings_mode ?? 'manual');
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [payments, setPayments] = useState<BillPayment[]>([]);
@@ -112,6 +113,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
         goal_target: goalTarget ? Math.round(parseFloat(goalTarget) * 100) : null,
         goal_saved: goalSaved ? Math.round(parseFloat(goalSaved) * 100) : null,
         use_average: useAverage,
+        savings_mode: savingsMode,
       };
 
       if (bill) {
@@ -263,6 +265,28 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
             placeholder="Ray White Real Estate"
             style={{ width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none' }} />
         </div>
+
+        {/* Savings contribution mode */}
+        {category === 'savings' && (
+          <div>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>CONTRIBUTION TRACKING</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {([
+                { value: 'manual', label: '✋ Manual', desc: "I'll mark each contribution myself" },
+                { value: 'auto',   label: '⚡ Auto on payday', desc: 'Added automatically each pay cycle' },
+              ] as const).map(opt => (
+                <button key={opt.value} onClick={() => setSavingsMode(opt.value)} style={{
+                  flex: 1, padding: '10px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                  border: savingsMode === opt.value ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+                  background: savingsMode === opt.value ? 'rgba(124,108,240,0.14)' : 'var(--surface2)',
+                }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: savingsMode === opt.value ? 'var(--text)' : 'var(--muted)' }}>{opt.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Savings goal extras */}
         {category === 'savings' && (

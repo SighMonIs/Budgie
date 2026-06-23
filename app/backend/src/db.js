@@ -102,6 +102,8 @@ function migrate(db) {
   try { db.exec(`ALTER TABLE bills ADD COLUMN use_average INTEGER NOT NULL DEFAULT 0`); } catch {}
   try { db.exec(`ALTER TABLE categories ADD COLUMN sort_order INTEGER`); } catch {}
   try { db.exec(`ALTER TABLE bills ADD COLUMN sort_order INTEGER`); } catch {}
+  try { db.exec(`ALTER TABLE bills ADD COLUMN savings_mode TEXT NOT NULL DEFAULT 'manual'`); } catch {}
+  try { db.exec(`ALTER TABLE bills ADD COLUMN last_contributed_at TEXT`); } catch {}
   db.exec(`UPDATE categories SET sort_order = id WHERE sort_order IS NULL`);
   db.exec(`UPDATE bills SET sort_order = id WHERE sort_order IS NULL`);
 

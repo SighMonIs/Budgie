@@ -14,21 +14,31 @@ router.get('/', (req, res) => {
 
 router.post('/', (req, res) => {
   const db = getDb();
-  const { category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average } = req.body;
+  const { category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode } = req.body;
   const result = db.prepare(`
-    INSERT INTO bills (category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(category, name, amount, frequency, due_day ?? null, due_date ?? null, account_id ?? null, payee_id ?? null, method ?? 'auto', notes ?? null, goal_target ?? null, goal_saved ?? null, goal_deadline ?? null, use_average ? 1 : 0);
+    INSERT INTO bills (category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(category, name, amount, frequency, due_day ?? null, due_date ?? null, account_id ?? null, payee_id ?? null, method ?? 'auto', notes ?? null, goal_target ?? null, goal_saved ?? null, goal_deadline ?? null, use_average ? 1 : 0, savings_mode ?? 'manual');
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
 router.put('/:id', (req, res) => {
   const db = getDb();
-  const { category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average } = req.body;
+  const { category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode } = req.body;
   db.prepare(`
-    UPDATE bills SET category=?, name=?, amount=?, frequency=?, due_day=?, due_date=?, account_id=?, payee_id=?, method=?, notes=?, goal_target=?, goal_saved=?, goal_deadline=?, use_average=?
+    UPDATE bills SET category=?, name=?, amount=?, frequency=?, due_day=?, due_date=?, account_id=?, payee_id=?, method=?, notes=?, goal_target=?, goal_saved=?, goal_deadline=?, use_average=?, savings_mode=?
     WHERE id=?
-  `).run(category, name, amount, frequency, due_day ?? null, due_date ?? null, account_id ?? null, payee_id ?? null, method ?? 'auto', notes ?? null, goal_target ?? null, goal_saved ?? null, goal_deadline ?? null, use_average ? 1 : 0, req.params.id);
+  `).run(category, name, amount, frequency, due_day ?? null, due_date ?? null, account_id ?? null, payee_id ?? null, method ?? 'auto', notes ?? null, goal_target ?? null, goal_saved ?? null, goal_deadline ?? null, use_average ? 1 : 0, savings_mode ?? 'manual', req.params.id);
+  res.json({ ok: true });
+});
+
+router.post('/:id/contribute', (req, res) => {
+  const db = getDb();
+  const bill = db.prepare('SELECT * FROM bills WHERE id=?').get(req.params.id);
+  if (!bill) return res.status(404).json({ error: 'Not found' });
+  const today = new Date().toISOString().slice(0, 10);
+  db.prepare('UPDATE bills SET goal_saved = COALESCE(goal_saved, 0) + ?, last_contributed_at = ? WHERE id=?')
+    .run(bill.amount, today, bill.id);
   res.json({ ok: true });
 });
 

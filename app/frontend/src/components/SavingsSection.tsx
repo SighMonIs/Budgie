@@ -13,6 +13,7 @@ interface Props {
   onEditCategory?: () => void;
   onMoveCategory?: (dir: 'up' | 'down') => void;
   onMoveItem?: (id: number, dir: 'up' | 'down') => void;
+  onContribute?: (id: number) => void;
   isFirst?: boolean;
   isLast?: boolean;
 }
@@ -39,7 +40,7 @@ function OrderBtn({ onClick, disabled, children }: { onClick: () => void; disabl
   );
 }
 
-export default function SavingsSection({ title = 'Savings', items, total, accentColor = '#feca57', editMode, onAdd, onEdit, onEditCategory, onMoveCategory, onMoveItem, isFirst, isLast }: Props) {
+export default function SavingsSection({ title = 'Savings', items, total, accentColor = '#feca57', editMode, onAdd, onEdit, onEditCategory, onMoveCategory, onMoveItem, onContribute, isFirst, isLast }: Props) {
   const COLOR = accentColor;
   return (
     <div style={{ background: `${COLOR}08`, borderRadius: 12, overflow: 'hidden' }}>
@@ -97,14 +98,35 @@ export default function SavingsSection({ title = 'Savings', items, total, accent
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</span>
+                      {item.savings_mode === 'auto' ? (
+                        <span style={{ fontSize: 9, fontWeight: 700, color: '#3ecf8e', background: 'rgba(62,207,142,0.13)', padding: '2px 6px', borderRadius: 4, letterSpacing: '0.04em' }}>AUTO</span>
+                      ) : (
+                        <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--muted)', background: 'var(--surface2)', padding: '2px 6px', borderRadius: 4, letterSpacing: '0.04em' }}>MANUAL</span>
+                      )}
+                    </div>
                     <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 1 }}>
                       {item.account_name ?? 'Savings'} · {fmtAUD(item.perFortnight)}/fn
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span className="sg" style={{ fontSize: 15, fontWeight: 600 }}>{fmtAUD(saved)}</span>
-                    <span style={{ fontSize: 12, color: 'var(--muted)' }}> of {fmtAUD(target)}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <span className="sg" style={{ fontSize: 15, fontWeight: 600 }}>{fmtAUD(saved)}</span>
+                      <span style={{ fontSize: 12, color: 'var(--muted)' }}> of {fmtAUD(target)}</span>
+                    </div>
+                    {onContribute && (
+                      <button
+                        onClick={e => { e.stopPropagation(); onContribute(item.id); }}
+                        title={`Add ${fmtAUD(item.perFortnight)} contribution`}
+                        style={{
+                          width: 28, height: 28, borderRadius: 8, border: `1px solid ${COLOR}50`,
+                          background: `${COLOR}15`, color: COLOR,
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 16, fontWeight: 700, flexShrink: 0,
+                        }}
+                      >+</button>
+                    )}
                   </div>
                 </div>
                 <div style={{ marginTop: 8, height: 6, borderRadius: 3, background: 'rgba(0,0,0,0.15)', overflow: 'hidden' }}>

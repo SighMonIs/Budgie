@@ -32,6 +32,8 @@ export interface Bill {
   payee_number: string | null;
   payee_reference: string | null;
   use_average: number;
+  savings_mode: 'manual' | 'auto';
+  last_contributed_at: string | null;
 }
 
 export interface Totals {

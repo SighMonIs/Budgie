@@ -106,6 +106,7 @@ export default function App() {
                   onEditCategory: () => setCategoryModal({ open: true, category: cat }),
                   onMoveCategory: (dir: 'up' | 'down') => moveCategory(cat.id!, dir),
                   onMoveItem:     (id: number, dir: 'up' | 'down') => moveItem(id, dir),
+                  onContribute:   async (id: number) => { await fetch(`/api/bills/${id}/contribute`, { method: 'POST' }); load(); },
                   isFirst, isLast,
                 };
                 if (cat.slug === 'savings') {

@@ -24,6 +24,18 @@ router.get('/', (req, res) => {
     return b;
   });
 
+  // Auto-contribute savings goals when payday arrives
+  const today = new Date().toISOString().slice(0, 10);
+  if (today >= settings.next_payday) {
+    const autoGoals = rawBills.filter(b => b.category === 'savings' && b.savings_mode === 'auto');
+    for (const g of autoGoals) {
+      if (!g.last_contributed_at || g.last_contributed_at < settings.next_payday) {
+        db.prepare('UPDATE bills SET goal_saved = COALESCE(goal_saved, 0) + ?, last_contributed_at = ? WHERE id=?')
+          .run(g.amount, today, g.id);
+      }
+    }
+  }
+
   const totals = computeTotals(bills);
   const adjustments = db.prepare('SELECT * FROM fund_adjustments ORDER BY created_at DESC').all();
   const adjDelta = adjustments.reduce((acc, a) => {
