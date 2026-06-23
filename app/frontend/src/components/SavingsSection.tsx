@@ -18,12 +18,24 @@ interface Props {
 }
 
 function OrderBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
+  const [hovered, setHovered] = React.useState(false);
   return (
-    <button onClick={e => { e.stopPropagation(); onClick(); }} disabled={disabled} style={{
-      background: 'none', border: 'none', cursor: disabled ? 'default' : 'pointer',
-      color: disabled ? 'transparent' : 'var(--muted)', padding: '0 1px', lineHeight: 1,
-      fontSize: 11, display: 'flex', alignItems: 'center',
-    }}>{children}</button>
+    <button
+      onClick={e => { e.stopPropagation(); if (!disabled) onClick(); }}
+      disabled={disabled}
+      onMouseEnter={() => !disabled && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: 18, height: 16, borderRadius: 4, border: 'none',
+        background: disabled ? 'transparent' : hovered ? 'var(--accent)' : 'var(--surface2)',
+        color: disabled ? 'transparent' : hovered ? '#fff' : 'var(--muted)',
+        cursor: disabled ? 'default' : 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 9, lineHeight: 1, padding: 0,
+        transition: 'background 0.15s, color 0.15s',
+        flexShrink: 0,
+      }}
+    >{children}</button>
   );
 }
 
