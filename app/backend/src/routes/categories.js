@@ -4,7 +4,20 @@ import { getDb } from '../db.js';
 const router = Router();
 
 router.get('/', (req, res) => {
-  res.json(getDb().prepare('SELECT * FROM categories ORDER BY id').all());
+  res.json(getDb().prepare('SELECT * FROM categories ORDER BY sort_order, id').all());
+});
+
+router.patch('/:id/order', (req, res) => {
+  const db = getDb();
+  const { direction } = req.body;
+  const all = db.prepare('SELECT id, sort_order FROM categories ORDER BY sort_order, id').all();
+  const idx = all.findIndex(c => c.id === parseInt(req.params.id));
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (idx < 0 || swapIdx < 0 || swapIdx >= all.length) return res.json({ ok: true });
+  const a = all[idx], b = all[swapIdx];
+  db.prepare('UPDATE categories SET sort_order=? WHERE id=?').run(b.sort_order ?? b.id, a.id);
+  db.prepare('UPDATE categories SET sort_order=? WHERE id=?').run(a.sort_order ?? a.id, b.id);
+  res.json({ ok: true });
 });
 
 router.post('/', (req, res) => {

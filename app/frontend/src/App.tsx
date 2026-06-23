@@ -27,6 +27,16 @@ export default function App() {
     setCategories(await res.json());
   }, []);
 
+  const moveCategory = useCallback(async (id: number, dir: 'up' | 'down') => {
+    await fetch(`/api/categories/${id}/order`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) });
+    loadCategories();
+  }, [loadCategories]);
+
+  const moveItem = useCallback(async (id: number, dir: 'up' | 'down') => {
+    await fetch(`/api/bills/${id}/order`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) });
+    load();
+  }, [load]);
+
   const load = useCallback(async () => {
     try {
       const d = await fetchDashboard();
@@ -85,43 +95,42 @@ export default function App() {
             )}
 
             {(() => {
-              const billsCat   = categories.find(c => c.slug === 'bills');
-              const subsCat    = categories.find(c => c.slug === 'subscriptions');
-              const savingsCat = categories.find(c => c.slug === 'savings');
-              return <>
-                <BillsSection
-                  title={billsCat?.name ?? 'Bills'}
-                  accentColor={billsCat?.color ?? '#ff6b5e'}
-                  items={data.bills}
-                  total={data.totals.bills}
-                  editMode={editMode}
-                  onAdd={() => setBillModal({ open: true })}
-                  onEdit={bill => setBillModal({ open: true, bill })}
-                  onEditCategory={billsCat ? () => setCategoryModal({ open: true, category: billsCat }) : undefined}
-                />
-
-                <BillsSection
-                  title={subsCat?.name ?? 'Subscriptions'}
-                  accentColor={subsCat?.color ?? '#54a0ff'}
-                  items={data.subscriptions}
-                  total={data.totals.subscriptions}
-                  editMode={editMode}
-                  onAdd={() => setBillModal({ open: true })}
-                  onEdit={bill => setBillModal({ open: true, bill })}
-                  onEditCategory={subsCat ? () => setCategoryModal({ open: true, category: subsCat }) : undefined}
-                />
-
-                <SavingsSection
-                  title={savingsCat?.name ?? 'Savings'}
-                  items={data.savings}
-                  total={data.totals.savings}
-                  accentColor={savingsCat?.color ?? '#feca57'}
-                  editMode={editMode}
-                  onAdd={() => setBillModal({ open: true })}
-                  onEdit={bill => setBillModal({ open: true, bill })}
-                  onEditCategory={savingsCat ? () => setCategoryModal({ open: true, category: savingsCat }) : undefined}
-                />
-              </>;
+              const n = categories.length;
+              return categories.map((cat, idx) => {
+                const isFirst = idx === 0;
+                const isLast  = idx === n - 1;
+                const commonProps = {
+                  editMode,
+                  onAdd:          () => setBillModal({ open: true }),
+                  onEdit:         (bill: Bill) => setBillModal({ open: true, bill }),
+                  onEditCategory: () => setCategoryModal({ open: true, category: cat }),
+                  onMoveCategory: (dir: 'up' | 'down') => moveCategory(cat.id!, dir),
+                  onMoveItem:     (id: number, dir: 'up' | 'down') => moveItem(id, dir),
+                  isFirst, isLast,
+                };
+                if (cat.slug === 'savings') {
+                  return (
+                    <SavingsSection key={cat.id}
+                      title={cat.name}
+                      accentColor={cat.color}
+                      items={data.savings}
+                      total={data.totals.savings}
+                      {...commonProps}
+                    />
+                  );
+                }
+                const items = cat.slug === 'bills' ? data.bills : cat.slug === 'subscriptions' ? data.subscriptions : [];
+                const total = cat.slug === 'bills' ? data.totals.bills : cat.slug === 'subscriptions' ? data.totals.subscriptions : 0;
+                return (
+                  <BillsSection key={cat.id}
+                    title={cat.name}
+                    accentColor={cat.color}
+                    items={items}
+                    total={total}
+                    {...commonProps}
+                  />
+                );
+              });
             })()}
           </div>
 

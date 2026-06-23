@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
     FROM bills b
     LEFT JOIN accounts a ON b.account_id = a.id
     LEFT JOIN payees p ON b.payee_id = p.id
-    ORDER BY b.category, b.id
+    ORDER BY b.category, b.sort_order, b.id
   `).all();
 
   const avgStmt = db.prepare('SELECT AVG(amount) as avg FROM bill_payments WHERE bill_id=?');

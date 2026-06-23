@@ -38,6 +38,21 @@ router.delete('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+router.patch('/:id/order', (req, res) => {
+  const db = getDb();
+  const { direction } = req.body;
+  const bill = db.prepare('SELECT id, category, sort_order FROM bills WHERE id=?').get(req.params.id);
+  if (!bill) return res.status(404).json({ error: 'Not found' });
+  const all = db.prepare('SELECT id, sort_order FROM bills WHERE category=? ORDER BY sort_order, id').all(bill.category);
+  const idx = all.findIndex(b => b.id === bill.id);
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (idx < 0 || swapIdx < 0 || swapIdx >= all.length) return res.json({ ok: true });
+  const a = all[idx], b = all[swapIdx];
+  db.prepare('UPDATE bills SET sort_order=? WHERE id=?').run(b.sort_order ?? b.id, a.id);
+  db.prepare('UPDATE bills SET sort_order=? WHERE id=?').run(a.sort_order ?? a.id, b.id);
+  res.json({ ok: true });
+});
+
 // Payment history
 router.get('/:id/payments', (req, res) => {
   const db = getDb();

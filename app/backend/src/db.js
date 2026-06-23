@@ -100,6 +100,10 @@ function migrate(db) {
   try { db.exec(`ALTER TABLE settings ADD COLUMN pending_pay_date TEXT`); } catch {}
   try { db.exec(`ALTER TABLE categories ADD COLUMN slug TEXT`); } catch {}
   try { db.exec(`ALTER TABLE bills ADD COLUMN use_average INTEGER NOT NULL DEFAULT 0`); } catch {}
+  try { db.exec(`ALTER TABLE categories ADD COLUMN sort_order INTEGER`); } catch {}
+  try { db.exec(`ALTER TABLE bills ADD COLUMN sort_order INTEGER`); } catch {}
+  db.exec(`UPDATE categories SET sort_order = id WHERE sort_order IS NULL`);
+  db.exec(`UPDATE bills SET sort_order = id WHERE sort_order IS NULL`);
 
   // Seed categories if empty
   const catCount = db.prepare('SELECT COUNT(*) as n FROM categories').get();
