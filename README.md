@@ -9,7 +9,7 @@ The easiest way to run Budgie is with Docker Compose. Create a `docker-compose.y
 ```yaml
 services:
   budgie:
-    image: ghcr.io/sighmonIs/budgie:latest
+    image: ghcr.io/sighmonis/budgie:latest
     ports:
       - "8080:8080"
     volumes:
