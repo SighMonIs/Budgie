@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0}
+  input::placeholder{color:#6a7186}
+</style>
+</helmet>
+
+<div style="min-width:100%;min-height:100vh;width:max-content;box-sizing:border-box;background:#0a0b0f;font-family:Manrope,sans-serif;padding:40px;display:flex;flex-direction:column;gap:26px">
+
+  <div style="display:flex;align-items:center;gap:11px">
+    <div style="width:30px;height:30px;border-radius:9px;background:var(--accent,#7c6cf0);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;color:#fff;font-size:17px">B</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;color:#f3f4f9">Budgie</div>
+    <div style="font-size:12px;color:#70748c;align-self:flex-end;padding-bottom:3px;margin-left:4px">flow mockups · add a bill · adjust funds</div>
+  </div>
+
+  <div style="display:flex;gap:40px;align-items:flex-start">
+
+    <!-- ============ ADD A BILL ============ -->
+    <div style="flex:none">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:#e7e8f0;margin-bottom:13px">Add / edit a bill</div>
+      <div style="width:540px;background:var(--surface,#1c1e25);border:1px solid var(--line,rgba(255,255,255,0.07));border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,0.5);overflow:hidden;color:var(--text,#f0f1f4)">
+
+        <div style="display:flex;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line,rgba(255,255,255,0.06))">
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px">Add a bill</div>
+            <div style="font-size:12px;color:var(--muted,#8b8f9c);margin-top:2px">Budgie will set this aside each payday</div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="width:30px;height:30px;border-radius:9px;background:var(--surface2,#23262f);display:flex;align-items:center;justify-content:center;color:var(--muted,#8b8f9c);font-size:16px">✕</div>
+        </div>
+
+        <div style="padding:22px 24px">
+
+          <!-- category -->
+          <div style="margin-bottom:16px">
+            <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:8px;display:block">CATEGORY</label>
+            <div style="display:flex;gap:9px">
+              <button onClick="{{ pickBills }}" style="{{ catBills }}"><span style="width:9px;height:9px;border-radius:3px;background:#ff6b5e;display:inline-block"></span>Bills</button>
+              <button onClick="{{ pickSubs }}" style="{{ catSubs }}"><span style="width:9px;height:9px;border-radius:3px;background:#54a0ff;display:inline-block"></span>Subscriptions</button>
+              <button onClick="{{ pickSavings }}" style="{{ catSav }}"><span style="width:9px;height:9px;border-radius:3px;background:#feca57;display:inline-block"></span>Savings</button>
+            </div>
+          </div>
+
+          <!-- name -->
+          <div style="margin-bottom:14px">
+            <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:6px;display:block">BILL NAME</label>
+            <input type="text" defaultValue="Rent" style="width:100%;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:10px;padding:11px 13px;color:var(--text,#f0f1f4);font-family:Manrope,sans-serif;font-size:13.5px;outline:none">
+          </div>
+
+          <!-- amount + frequency -->
+          <div style="display:flex;gap:12px;margin-bottom:14px">
+            <div style="flex:1">
+              <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:6px;display:block">AMOUNT</label>
+              <div style="display:flex;align-items:center;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:10px;padding:0 13px">
+                <span style="color:var(--muted,#8b8f9c);font-family:'Space Grotesk',sans-serif">$</span>
+                <input type="text" defaultValue="1,840" style="flex:1;background:transparent;border:none;padding:11px 8px;color:var(--text,#f0f1f4);font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none">
+              </div>
+            </div>
+            <div style="flex:1">
+              <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:6px;display:block">HOW OFTEN</label>
+              <div style="display:flex;align-items:center;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:10px;padding:11px 13px;color:var(--text,#f0f1f4);font-size:13.5px">Monthly<div style="flex:1"></div><span style="color:var(--muted,#8b8f9c)">▾</span></div>
+            </div>
+          </div>
+          <div style="font-size:11.5px;color:var(--muted,#8b8f9c);margin:-6px 0 16px;display:flex;align-items:center;gap:6px"><span style="color:var(--accent,#7c6cf0)">↳</span> Budgie sets aside <strong style="color:var(--text,#f0f1f4)">$920</strong> each fortnight</div>
+
+          <!-- due + paid from -->
+          <div style="display:flex;gap:12px;margin-bottom:14px">
+            <div style="flex:1">
+              <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:6px;display:block">DUE DATE</label>
+              <div style="display:flex;align-items:center;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:10px;padding:11px 13px;color:var(--text,#f0f1f4);font-size:13.5px">1st of month<div style="flex:1"></div><span style="color:var(--muted,#8b8f9c)">▾</span></div>
+            </div>
+            <div style="flex:1">
+              <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:6px;display:block">PAID FROM</label>
+              <div style="display:flex;align-items:center;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:10px;padding:11px 13px;color:var(--text,#f0f1f4);font-size:13.5px">Bank Account A<div style="flex:1"></div><span style="color:var(--muted,#8b8f9c)">▾</span></div>
+            </div>
+          </div>
+
+          <!-- payment method -->
+          <div style="margin-bottom:16px">
+            <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:8px;display:block">PAYMENT METHOD</label>
+            <div style="display:flex;gap:9px">
+              <button onClick="{{ pickAuto }}" style="{{ methAuto }}">⚡ Automatic</button>
+              <button onClick="{{ pickManual }}" style="{{ methManual }}">✋ Manual</button>
+            </div>
+            <div style="font-size:11.5px;color:var(--muted,#8b8f9c);margin-top:8px">{{ methodNote }}</div>
+          </div>
+
+          <!-- paid to -->
+          <div style="margin-bottom:14px">
+            <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:6px;display:block">PAID TO</label>
+            <input type="text" defaultValue="Ray White Real Estate" style="width:100%;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:10px;padding:11px 13px;color:var(--text,#f0f1f4);font-family:Manrope,sans-serif;font-size:13.5px;outline:none">
+          </div>
+
+          <!-- optional payee bank details -->
+          <div style="background:var(--surface2,#23262f);border:1px dashed var(--line,rgba(255,255,255,0.12));border-radius:12px;padding:14px;margin-bottom:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--text,#f0f1f4);margin-bottom:3px">Payee bank details <span style="color:var(--muted,#8b8f9c);font-weight:500">· optional</span></div>
+            <div style="font-size:11.5px;color:var(--muted,#8b8f9c);margin-bottom:11px">Store these so Budgie can show you exactly where to send the money.</div>
+            <div style="display:flex;gap:12px">
+              <div style="flex:1"><label style="font-size:11px;color:var(--muted,#8b8f9c);margin-bottom:5px;display:block">BSB</label><input type="text" defaultValue="062-000" style="width:100%;background:var(--surface,#1c1e25);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:9px;padding:9px 11px;color:var(--text,#f0f1f4);font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none"></div>
+              <div style="flex:1.5"><label style="font-size:11px;color:var(--muted,#8b8f9c);margin-bottom:5px;display:block">ACCOUNT NUMBER</label><input type="text" defaultValue="1234 5678" style="width:100%;background:var(--surface,#1c1e25);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:9px;padding:9px 11px;color:var(--text,#f0f1f4);font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none"></div>
+            </div>
+            <div style="margin-top:12px"><label style="font-size:11px;color:var(--muted,#8b8f9c);margin-bottom:5px;display:block">REFERENCE</label><input type="text" defaultValue="Tenancy 04-217" style="width:100%;background:var(--surface,#1c1e25);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:9px;padding:9px 11px;color:var(--text,#f0f1f4);font-family:Manrope,sans-serif;font-size:13px;outline:none"></div>
+          </div>
+
+          <!-- notes -->
+          <div>
+            <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:6px;display:block">NOTES</label>
+            <input type="text" placeholder="e.g. lease ends Dec 2026" style="width:100%;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:10px;padding:11px 13px;color:var(--text,#f0f1f4);font-family:Manrope,sans-serif;font-size:13.5px;outline:none">
+          </div>
+
+        </div>
+
+        <div style="display:flex;gap:12px;padding:18px 24px;border-top:1px solid var(--line,rgba(255,255,255,0.06))">
+          <button style="flex:1;border:1px solid var(--line,rgba(255,255,255,0.12));cursor:pointer;background:transparent;color:var(--text,#f0f1f4);font-family:Manrope,sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:11px">Cancel</button>
+          <button style="flex:2;border:none;cursor:pointer;background:var(--accent,#7c6cf0);color:#fff;font-family:Manrope,sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:11px">Save bill</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ADD / TAKE OUT FUNDS ============ -->
+    <div style="flex:none">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:#e7e8f0;margin-bottom:13px">Add / Take out funds</div>
+      <div style="width:460px;background:var(--surface,#1c1e25);border:1px solid var(--line,rgba(255,255,255,0.07));border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,0.5);overflow:hidden;color:var(--text,#f0f1f4)">
+
+        <div style="display:flex;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line,rgba(255,255,255,0.06))">
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px">Adjust funds</div>
+          <div style="flex:1"></div>
+          <div style="width:30px;height:30px;border-radius:9px;background:var(--surface2,#23262f);display:flex;align-items:center;justify-content:center;color:var(--muted,#8b8f9c);font-size:16px">✕</div>
+        </div>
+
+        <div style="padding:22px 24px">
+
+          <!-- tabs -->
+          <div style="display:flex;gap:6px;background:var(--surface2,#23262f);border-radius:12px;padding:5px;margin-bottom:20px">
+            <button onClick="{{ tabAddFn }}" style="{{ tabAdd }}">+ Add money</button>
+            <button onClick="{{ tabTakeFn }}" style="{{ tabTake }}">− Take out</button>
+          </div>
+
+          <!-- amount -->
+          <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:8px;display:block">AMOUNT</label>
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:14px;padding:18px">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;color:var(--muted,#8b8f9c)">$</span>
+            <input type="text" value="{{ fundsAmount }}" onChange="{{ onFundsAmount }}" style="width:170px;background:transparent;border:none;text-align:center;color:var(--text,#f0f1f4);font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:700;outline:none">
+          </div>
+
+          <!-- for -->
+          <div style="margin:18px 0 14px">
+            <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:6px;display:block">WHAT'S IT FOR?</label>
+            <input type="text" defaultValue="Freelance design — weekend job" style="width:100%;background:var(--surface2,#23262f);border:1px solid var(--line,rgba(255,255,255,0.08));border-radius:10px;padding:11px 13px;color:var(--text,#f0f1f4);font-family:Manrope,sans-serif;font-size:13.5px;outline:none">
+          </div>
+
+          <!-- destination -->
+          <div style="margin-bottom:16px">
+            <label style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:var(--muted,#8b8f9c);margin-bottom:8px;display:block">{{ destLabel }}</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <button onClick="{{ destLeftoverFn }}" style="{{ destLeftover }}">Leftover to spend</button>
+              <button onClick="{{ destEmergencyFn }}" style="{{ destEmergency }}">Emergency Fund</button>
+              <button onClick="{{ destJapanFn }}" style="{{ destJapan }}">Japan Trip</button>
+            </div>
+          </div>
+
+          <!-- summary -->
+          <div style="background:var(--surface2,#23262f);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px">
+            <div style="flex:1">
+              <div style="font-size:11.5px;color:var(--muted,#8b8f9c)">Leftover to spend this fortnight</div>
+              <div style="display:flex;align-items:baseline;gap:9px;margin-top:3px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:var(--muted,#8b8f9c);text-decoration:line-through">$1,195</span>
+                <span style="color:var(--muted,#8b8f9c)">→</span>
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:{{ deltaColor }}">{{ leftoverAfter }}</span>
+              </div>
+            </div>
+            <div style="font-size:22px;color:{{ deltaColor }}">{{ deltaArrow }}</div>
+          </div>
+
+        </div>
+
+        <div style="display:flex;gap:12px;padding:18px 24px;border-top:1px solid var(--line,rgba(255,255,255,0.06))">
+          <button style="flex:1;border:1px solid var(--line,rgba(255,255,255,0.12));cursor:pointer;background:transparent;color:var(--text,#f0f1f4);font-family:Manrope,sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:11px">Cancel</button>
+          <button style="flex:2;border:none;cursor:pointer;background:var(--accent,#7c6cf0);color:#fff;font-family:Manrope,sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:11px">{{ confirmLabel }}</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#7c6cf0&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = {
+    category: 'bills',
+    method: 'auto',
+    tab: 'add',
+    dest: 'leftover',
+    fundsAmount: '250'
+  };
+
+  pill(active){
+    return 'display:flex;align-items:center;justify-content:center;gap:7px;flex:1;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;font-size:12.5px;padding:11px 10px;border-radius:11px;border:1px solid ' +
+      (active ? 'var(--accent,#7c6cf0);background:rgba(124,108,240,0.14);color:var(--text,#f0f1f4)'
+              : 'var(--line,rgba(255,255,255,0.08));background:var(--surface2,#23262f);color:var(--muted,#8b8f9c)');
+  }
+  tabStyle(active){
+    return 'flex:1;cursor:pointer;border:none;font-family:Manrope,sans-serif;font-weight:700;font-size:13px;padding:10px;border-radius:9px;background:' +
+      (active ? 'var(--accent,#7c6cf0);color:#fff' : 'transparent;color:var(--muted,#8b8f9c)');
+  }
+  chip(active){
+    return 'cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;font-size:12px;padding:8px 13px;border-radius:9px;border:1px solid ' +
+      (active ? 'var(--accent,#7c6cf0);background:rgba(124,108,240,0.14);color:var(--text,#f0f1f4)'
+              : 'var(--line,rgba(255,255,255,0.08));background:var(--surface2,#23262f);color:var(--muted,#8b8f9c)');
+  }
+
+  renderVals(){
+    const s = this.state;
+    const amt = parseInt((s.fundsAmount || '0').replace(/[^0-9]/g,''), 10) || 0;
+    const after = s.tab === 'add' ? 1195 + amt : 1195 - amt;
+    const afterStr = '$' + after.toLocaleString('en-AU');
+    const isAdd = s.tab === 'add';
+
+    return {
+      // bill category
+      catBills: this.pill(s.category==='bills'),
+      catSubs: this.pill(s.category==='subs'),
+      catSav: this.pill(s.category==='savings'),
+      pickBills: () => this.setState({category:'bills'}),
+      pickSubs: () => this.setState({category:'subs'}),
+      pickSavings: () => this.setState({category:'savings'}),
+      // method
+      methAuto: this.pill(s.method==='auto'),
+      methManual: this.pill(s.method==='manual'),
+      pickAuto: () => this.setState({method:'auto'}),
+      pickManual: () => this.setState({method:'manual'}),
+      methodNote: s.method==='auto'
+        ? 'Paid automatically by your bank — Budgie just reserves it.'
+        : 'You transfer this yourself. Budgie reminds you on the due date.',
+      // funds tabs
+      tabAdd: this.tabStyle(isAdd),
+      tabTake: this.tabStyle(!isAdd),
+      tabAddFn: () => this.setState({tab:'add'}),
+      tabTakeFn: () => this.setState({tab:'take'}),
+      fundsAmount: s.fundsAmount,
+      onFundsAmount: (e) => this.setState({ fundsAmount: e.target.value.replace(/[^0-9]/g,'') }),
+      destLabel: isAdd ? 'WHERE SHOULD IT GO?' : 'WHERE FROM?',
+      destLeftover: this.chip(s.dest==='leftover'),
+      destEmergency: this.chip(s.dest==='emergency'),
+      destJapan: this.chip(s.dest==='japan'),
+      destLeftoverFn: () => this.setState({dest:'leftover'}),
+      destEmergencyFn: () => this.setState({dest:'emergency'}),
+      destJapanFn: () => this.setState({dest:'japan'}),
+      leftoverAfter: afterStr,
+      deltaColor: isAdd ? '#3ecf8e' : '#ff6b5e',
+      deltaArrow: isAdd ? '↑' : '↓',
+      confirmLabel: (isAdd ? 'Add $' : 'Take out $') + amt.toLocaleString('en-AU')
+    };
+  }
+}
+</script>
+</body>
+</html>
