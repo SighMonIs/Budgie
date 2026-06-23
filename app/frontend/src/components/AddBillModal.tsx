@@ -34,6 +34,7 @@ export default function AddBillModal({ bill, onClose, onDone }: Props) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [payees, setPayees] = useState<Payee[]>([]);
   const [accountId, setAccountId] = useState<string>(bill?.account_id ? String(bill.account_id) : '');
+  const [useAverage, setUseAverage] = useState(bill?.use_average === 1);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [payments, setPayments] = useState<BillPayment[]>([]);
@@ -75,7 +76,7 @@ export default function AddBillModal({ bill, onClose, onDone }: Props) {
     setPayments(prev => prev.filter(p => p.id !== pid));
   }
 
-  const amountCents = Math.round(parseFloat(amountStr || '0') * 100);
+  const amountCents = useAverage && avgCents ? avgCents : Math.round(parseFloat(amountStr || '0') * 100);
   const pfCents = perFortnight(amountCents, frequency);
 
   const catOptions: { value: 'bills' | 'subscriptions' | 'savings'; label: string; color: string }[] = [
@@ -107,6 +108,7 @@ export default function AddBillModal({ bill, onClose, onDone }: Props) {
         method, notes,
         goal_target: goalTarget ? Math.round(parseFloat(goalTarget) * 100) : null,
         goal_saved: goalSaved ? Math.round(parseFloat(goalSaved) * 100) : null,
+        use_average: useAverage,
       };
 
       if (bill) {
@@ -186,11 +188,15 @@ export default function AddBillModal({ bill, onClose, onDone }: Props) {
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>AMOUNT</div>
-            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: useAverage ? 'rgba(62,207,142,0.07)' : 'var(--surface2)', border: `1px solid ${useAverage ? '#3ecf8e55' : 'var(--line)'}`, borderRadius: 10, padding: '10px 14px' }}>
               <span style={{ color: 'var(--muted)', marginRight: 4 }}>$</span>
-              <input value={amountStr} onChange={e => setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
+              <input
+                value={useAverage ? (avgCents / 100).toFixed(2) : amountStr}
+                onChange={e => !useAverage && setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
+                readOnly={useAverage}
                 placeholder="0" className="sg"
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 15, fontWeight: 600 }} />
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: useAverage ? '#3ecf8e' : 'var(--text)', fontSize: 15, fontWeight: 600, cursor: useAverage ? 'default' : 'text' }} />
+              {useAverage && <span style={{ fontSize: 10, color: '#3ecf8e', fontWeight: 700, letterSpacing: '0.05em', flexShrink: 0 }}>AUTO</span>}
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6, minHeight: 18 }}>
               {amountCents > 0 && (
@@ -294,7 +300,13 @@ export default function AddBillModal({ bill, onClose, onDone }: Props) {
                     padding: '3px 10px', borderRadius: 6, fontSize: 11.5, fontWeight: 600,
                     background: 'rgba(124,108,240,0.15)', border: '1px solid var(--accent)',
                     color: 'var(--accent)', cursor: 'pointer',
-                  }}>Use average</button>
+                  }}>Use once</button>
+                  <button onClick={() => setUseAverage(u => !u)} style={{
+                    padding: '3px 10px', borderRadius: 6, fontSize: 11.5, fontWeight: 600,
+                    border: 'none', cursor: 'pointer',
+                    background: useAverage ? '#3ecf8e' : 'var(--surface2)',
+                    color: useAverage ? '#fff' : 'var(--muted)',
+                  }}>{useAverage ? '✓ Always average' : 'Always average'}</button>
                 </>
               )}
             </div>

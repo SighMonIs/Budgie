@@ -31,6 +31,7 @@ export interface Bill {
   payee_bsb: string | null;
   payee_number: string | null;
   payee_reference: string | null;
+  use_average: number;
 }
 
 export interface Totals {

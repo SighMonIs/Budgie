@@ -7,13 +7,22 @@ const router = Router();
 router.get('/', (req, res) => {
   const db = getDb();
   const settings = db.prepare('SELECT * FROM settings WHERE id = 1').get();
-  const bills = db.prepare(`
+  const rawBills = db.prepare(`
     SELECT b.*, a.name as account_name, p.name as payee_name, p.bsb as payee_bsb, p.number as payee_number, p.reference as payee_reference
     FROM bills b
     LEFT JOIN accounts a ON b.account_id = a.id
     LEFT JOIN payees p ON b.payee_id = p.id
     ORDER BY b.category, b.id
   `).all();
+
+  const avgStmt = db.prepare('SELECT AVG(amount) as avg FROM bill_payments WHERE bill_id=?');
+  const bills = rawBills.map(b => {
+    if (b.use_average) {
+      const row = avgStmt.get(b.id);
+      if (row?.avg) return { ...b, amount: Math.round(row.avg) };
+    }
+    return b;
+  });
 
   const totals = computeTotals(bills);
   const adjustments = db.prepare('SELECT * FROM fund_adjustments ORDER BY created_at DESC').all();
