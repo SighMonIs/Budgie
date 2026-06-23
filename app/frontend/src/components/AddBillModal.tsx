@@ -13,6 +13,7 @@ interface BillPayment {
 
 interface Props {
   bill?: Bill;
+  defaultCategory?: string;
   onClose: () => void;
   onDone: () => void;
 }
@@ -20,8 +21,10 @@ interface Props {
 const FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'monthly_half', 'quarterly', 'yearly'];
 const FREQ_LABELS: Record<string, string> = { weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly', monthly_half: 'Monthly (÷ 2)', quarterly: 'Quarterly', yearly: 'Yearly' };
 
-export default function AddBillModal({ bill, onClose, onDone }: Props) {
-  const [category, setCategory] = useState<'bills' | 'subscriptions' | 'savings'>(bill?.category ?? 'bills');
+export default function AddBillModal({ bill, defaultCategory, onClose, onDone }: Props) {
+  const [category, setCategory] = useState<'bills' | 'subscriptions' | 'savings'>(
+    bill?.category ?? (defaultCategory as 'bills' | 'subscriptions' | 'savings') ?? 'bills'
+  );
   const [name, setName] = useState(bill?.name ?? '');
   const [amountStr, setAmountStr] = useState(bill ? String(bill.amount / 100) : '');
   const [frequency, setFrequency] = useState(bill?.frequency ?? 'monthly');

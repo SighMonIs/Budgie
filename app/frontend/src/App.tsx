@@ -17,7 +17,7 @@ export default function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [activeNav, setActiveNav] = useState('Overview');
   const [adjustModal, setAdjustModal] = useState<{ open: boolean; tab: 'add' | 'take' }>({ open: false, tab: 'add' });
-  const [billModal, setBillModal] = useState<{ open: boolean; bill?: Bill }>({ open: false });
+  const [billModal, setBillModal] = useState<{ open: boolean; bill?: Bill; defaultCategory?: string }>({ open: false });
   const [editMode, setEditMode] = useState(false);
   const [categoryModal, setCategoryModal] = useState<{ open: boolean; category?: Category }>({ open: false });
   const [categories, setCategories] = useState<Category[]>([]);
@@ -101,7 +101,7 @@ export default function App() {
                 const isLast  = idx === n - 1;
                 const commonProps = {
                   editMode,
-                  onAdd:          () => setBillModal({ open: true }),
+                  onAdd:          () => setBillModal({ open: true, defaultCategory: cat.slug }),
                   onEdit:         (bill: Bill) => setBillModal({ open: true, bill }),
                   onEditCategory: () => setCategoryModal({ open: true, category: cat }),
                   onMoveCategory: (dir: 'up' | 'down') => moveCategory(cat.id!, dir),
@@ -238,6 +238,7 @@ export default function App() {
       {billModal.open && (
         <AddBillModal
           bill={billModal.bill}
+          defaultCategory={billModal.defaultCategory}
           onClose={() => setBillModal({ open: false })}
           onDone={() => { setBillModal({ open: false }); load(); }}
         />
