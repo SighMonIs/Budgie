@@ -38,4 +38,24 @@ router.delete('/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// Payment history
+router.get('/:id/payments', (req, res) => {
+  const db = getDb();
+  res.json(db.prepare('SELECT * FROM bill_payments WHERE bill_id=? ORDER BY paid_date DESC, id DESC').all(req.params.id));
+});
+
+router.post('/:id/payments', (req, res) => {
+  const db = getDb();
+  const { amount, paid_date, note } = req.body;
+  const result = db.prepare('INSERT INTO bill_payments (bill_id, amount, paid_date, note) VALUES (?,?,?,?)')
+    .run(req.params.id, amount, paid_date ?? null, note ?? null);
+  res.status(201).json({ id: result.lastInsertRowid });
+});
+
+router.delete('/:id/payments/:pid', (req, res) => {
+  const db = getDb();
+  db.prepare('DELETE FROM bill_payments WHERE id=? AND bill_id=?').run(req.params.pid, req.params.id);
+  res.json({ ok: true });
+});
+
 export default router;

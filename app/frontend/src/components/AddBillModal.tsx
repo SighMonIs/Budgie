@@ -4,6 +4,13 @@ import { fmtAUD, perFortnight } from '../utils';
 import { createBill, updateBill, deleteBill, fetchAccounts, fetchPayees } from '../api';
 import ConfirmModal from './ConfirmModal';
 
+interface BillPayment {
+  id: number;
+  amount: number;
+  paid_date: string | null;
+  note: string | null;
+}
+
 interface Props {
   bill?: Bill;
   onClose: () => void;
@@ -29,11 +36,44 @@ export default function AddBillModal({ bill, onClose, onDone }: Props) {
   const [accountId, setAccountId] = useState<string>(bill?.account_id ? String(bill.account_id) : '');
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [payments, setPayments] = useState<BillPayment[]>([]);
+  const [newPaymentStr, setNewPaymentStr] = useState('');
+  const [newPaymentDate, setNewPaymentDate] = useState('');
 
   useEffect(() => {
     fetchAccounts().then(setAccounts);
     fetchPayees().then(setPayees);
   }, []);
+
+  useEffect(() => {
+    if (bill?.id) {
+      fetch(`/api/bills/${bill.id}/payments`).then(r => r.json()).then(setPayments);
+    }
+  }, [bill?.id]);
+
+  const avgCents = payments.length
+    ? Math.round(payments.reduce((s, p) => s + p.amount, 0) / payments.length)
+    : 0;
+
+  async function addPayment() {
+    const cents = Math.round(parseFloat(newPaymentStr || '0') * 100);
+    if (!cents || !bill?.id) return;
+    const res = await fetch(`/api/bills/${bill.id}/payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: cents, paid_date: newPaymentDate || null }),
+    });
+    const { id } = await res.json();
+    setPayments(prev => [{ id, amount: cents, paid_date: newPaymentDate || null, note: null }, ...prev]);
+    setNewPaymentStr('');
+    setNewPaymentDate('');
+  }
+
+  async function removePayment(pid: number) {
+    if (!bill?.id) return;
+    await fetch(`/api/bills/${bill.id}/payments/${pid}`, { method: 'DELETE' });
+    setPayments(prev => prev.filter(p => p.id !== pid));
+  }
 
   const amountCents = Math.round(parseFloat(amountStr || '0') * 100);
   const pfCents = perFortnight(amountCents, frequency);
@@ -236,6 +276,78 @@ export default function AddBillModal({ bill, onClose, onDone }: Props) {
                   style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 15, fontWeight: 600 }} />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Payment history — only when editing an existing bill */}
+        {bill && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)' }}>PAYMENT HISTORY</div>
+              {payments.length > 0 && (
+                <>
+                  <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+                  <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
+                    avg <strong style={{ color: 'var(--text)' }}>{fmtAUD(avgCents)}</strong>
+                  </div>
+                  <button onClick={() => setAmountStr(String(avgCents / 100))} style={{
+                    padding: '3px 10px', borderRadius: 6, fontSize: 11.5, fontWeight: 600,
+                    background: 'rgba(124,108,240,0.15)', border: '1px solid var(--accent)',
+                    color: 'var(--accent)', cursor: 'pointer',
+                  }}>Use average</button>
+                </>
+              )}
+            </div>
+
+            {/* Add payment row */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 9, padding: '8px 12px', flex: 1 }}>
+                <span style={{ color: 'var(--muted)', marginRight: 4, fontSize: 13 }}>$</span>
+                <input
+                  value={newPaymentStr}
+                  onChange={e => setNewPaymentStr(e.target.value.replace(/[^\d.]/g, ''))}
+                  placeholder="Amount paid"
+                  className="sg"
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 14, fontWeight: 600 }}
+                />
+              </div>
+              <input
+                type="date"
+                value={newPaymentDate}
+                onChange={e => setNewPaymentDate(e.target.value)}
+                style={{ background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 9, padding: '8px 10px', color: 'var(--text)', fontSize: 12.5, outline: 'none' }}
+              />
+              <button onClick={addPayment} disabled={!newPaymentStr} style={{
+                padding: '8px 14px', borderRadius: 9, fontSize: 13, fontWeight: 700,
+                background: newPaymentStr ? 'var(--accent)' : 'var(--surface2)',
+                color: newPaymentStr ? '#fff' : 'var(--muted)',
+                border: 'none', cursor: newPaymentStr ? 'pointer' : 'default',
+              }}>Add</button>
+            </div>
+
+            {/* Payment list */}
+            {payments.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 180, overflowY: 'auto' }}>
+                {payments.map(p => (
+                  <div key={p.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    background: 'var(--surface2)', borderRadius: 8, padding: '7px 12px',
+                  }}>
+                    <span className="sg" style={{ fontWeight: 600, fontSize: 13.5 }}>{fmtAUD(p.amount)}</span>
+                    {p.paid_date && (
+                      <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>
+                        {new Date(p.paid_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
+                    <div style={{ flex: 1 }} />
+                    <button onClick={() => removePayment(p.id)} style={{
+                      background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer',
+                      fontSize: 15, lineHeight: 1, padding: '0 2px',
+                    }}>×</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

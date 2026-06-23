@@ -84,6 +84,15 @@ function migrate(db) {
       destination TEXT,
       created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS bill_payments (
+      id         INTEGER PRIMARY KEY,
+      bill_id    INTEGER NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+      amount     INTEGER NOT NULL,
+      paid_date  TEXT,
+      note       TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   // Add new columns to existing databases gracefully
