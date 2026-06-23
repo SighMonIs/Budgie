@@ -27,16 +27,6 @@ export default function App() {
     setCategories(await res.json());
   }, []);
 
-  const moveCategory = useCallback(async (id: number, dir: 'up' | 'down') => {
-    await fetch(`/api/categories/${id}/order`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) });
-    loadCategories();
-  }, [loadCategories]);
-
-  const moveItem = useCallback(async (id: number, dir: 'up' | 'down') => {
-    await fetch(`/api/bills/${id}/order`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) });
-    load();
-  }, [load]);
-
   const load = useCallback(async () => {
     try {
       const d = await fetchDashboard();
@@ -46,6 +36,16 @@ export default function App() {
       setError('Could not connect to Budgie API. Make sure the backend is running.');
     }
   }, []);
+
+  const moveCategory = useCallback(async (id: number, dir: 'up' | 'down') => {
+    await fetch(`/api/categories/${id}/order`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) });
+    loadCategories();
+  }, [loadCategories]);
+
+  const moveItem = useCallback(async (id: number, dir: 'up' | 'down') => {
+    await fetch(`/api/bills/${id}/order`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) });
+    load();
+  }, [load]);
 
   useEffect(() => { loadCategories(); }, [loadCategories]);
 
