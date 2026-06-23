@@ -128,7 +128,7 @@ export default function SavingsSection({ title = 'Savings', items, total, accent
               background: 'transparent', border: `1px dashed ${COLOR}60`,
               color: COLOR, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
               letterSpacing: '0.02em',
-            }}>+ Add Goal</button>
+            }}>+ Add {title}</button>
           </div>
         )}
       </div>
