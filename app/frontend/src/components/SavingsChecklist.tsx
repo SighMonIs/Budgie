@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Bill } from '../types';
-import { fmtAUD } from '../utils';
+import { fmtAUD, formatDate } from '../utils';
 
 interface Props {
   items: Bill[];
@@ -64,7 +64,7 @@ export default function SavingsChecklist({ items, nextPayday, onContribute }: Pr
                 {item.name}
               </div>
               <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>
-                {fmtAUD(item.perFortnight)}/fn
+                {fmtAUD(item.perFortnight)}/fn · due {formatDate(nextPayday)}
               </div>
             </div>
             <button
