@@ -5,11 +5,12 @@ export function fmtAUD(cents: number): string {
 
 export function perFortnight(amountCents: number, frequency: string): number {
   const factors: Record<string, number> = {
-    weekly:      2,
-    fortnightly: 1,
-    monthly:     12 / 26,
-    quarterly:   4 / 26,
-    yearly:      1 / 26,
+    weekly:         2,
+    fortnightly:    1,
+    monthly:        12 / 26,
+    monthly_half:   0.5,      // calendar month split evenly: amount ÷ 2
+    quarterly:      4 / 26,
+    yearly:         1 / 26,
   };
   return Math.round(amountCents * (factors[frequency] ?? 1));
 }

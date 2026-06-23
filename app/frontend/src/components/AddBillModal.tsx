@@ -10,8 +10,8 @@ interface Props {
   onDone: () => void;
 }
 
-const FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'];
-const FREQ_LABELS: Record<string, string> = { weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly', quarterly: 'Quarterly', yearly: 'Yearly' };
+const FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'monthly_half', 'quarterly', 'yearly'];
+const FREQ_LABELS: Record<string, string> = { weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly', monthly_half: 'Monthly (÷ 2)', quarterly: 'Quarterly', yearly: 'Yearly' };
 
 export default function AddBillModal({ bill, onClose, onDone }: Props) {
   const [category, setCategory] = useState<'bills' | 'subscriptions' | 'savings'>(bill?.category ?? 'bills');

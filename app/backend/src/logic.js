@@ -1,11 +1,12 @@
 // Frequency normalisation → per-fortnight cents
 export function perFortnight(amountCents, frequency) {
   const factors = {
-    weekly:      2,
-    fortnightly: 1,
-    monthly:     12 / 26,
-    quarterly:   4  / 26,
-    yearly:      1  / 26,
+    weekly:       2,
+    fortnightly:  1,
+    monthly:      12 / 26,
+    monthly_half: 0.5,
+    quarterly:    4  / 26,
+    yearly:       1  / 26,
   };
   const f = factors[frequency] ?? 1;
   return Math.round(amountCents * f);
