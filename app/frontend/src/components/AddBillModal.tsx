@@ -221,10 +221,35 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
         {/* Due Day + Account */}
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>DUE DAY OF MONTH</div>
-            <input value={dueDay} onChange={e => setDueDay(e.target.value.replace(/\D/g, ''))}
-              placeholder="e.g. 1" type="number" min="1" max="31"
-              style={{ width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none' }} />
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>
+              {category === 'savings' ? 'CONTRIBUTION DATE' : 'DUE DAY OF MONTH'}
+            </div>
+            {category === 'savings' ? (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setDueDay('')} style={{
+                  flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+                  border: dueDay === '' ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+                  background: dueDay === '' ? 'rgba(124,108,240,0.14)' : 'var(--surface2)',
+                  color: dueDay === '' ? 'var(--text)' : 'var(--muted)',
+                }}>On payday</button>
+                <input
+                  value={dueDay}
+                  onChange={e => setDueDay(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Day #"
+                  type="number" min="1" max="31"
+                  style={{
+                    flex: 1, background: dueDay !== '' ? 'var(--surface2)' : 'transparent',
+                    border: dueDay !== '' ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+                    borderRadius: 9, padding: '10px 10px', color: 'var(--text)', fontSize: 13, outline: 'none',
+                    textAlign: 'center',
+                  }}
+                />
+              </div>
+            ) : (
+              <input value={dueDay} onChange={e => setDueDay(e.target.value.replace(/\D/g, ''))}
+                placeholder="e.g. 1" type="number" min="1" max="31"
+                style={{ width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none' }} />
+            )}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>PAID FROM</div>

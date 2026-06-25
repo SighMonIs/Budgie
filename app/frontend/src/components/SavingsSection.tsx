@@ -108,6 +108,7 @@ export default function SavingsSection({ title = 'Savings', items, total, accent
                     </div>
                     <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 1 }}>
                       {item.account_name ?? 'Savings'} · {fmtAUD(item.perFortnight)}/fn
+                      {item.due_day ? ` · day ${item.due_day}` : ' · on payday'}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
