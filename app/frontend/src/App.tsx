@@ -10,6 +10,7 @@ import AddBillModal from './components/AddBillModal';
 import BonusPaydayCard from './components/BonusPaydayCard';
 import CategoryModal, { Category } from './components/CategoryModal';
 import SavingsChecklist from './components/SavingsChecklist';
+import AccountsModal from './components/AccountsModal';
 import { Bill } from './types';
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
   const [editMode, setEditMode] = useState(false);
   const [categoryModal, setCategoryModal] = useState<{ open: boolean; category?: Category }>({ open: false });
   const [categories, setCategories] = useState<Category[]>([]);
+  const [accountsModal, setAccountsModal] = useState(false);
 
   const loadCategories = useCallback(async () => {
     const res = await fetch('/api/categories');
@@ -216,6 +218,12 @@ export default function App() {
               </div>
             </div>
 
+            <button onClick={() => setAccountsModal(true)} style={{
+              width: '100%', padding: '10px 0', borderRadius: 10, fontSize: 13, fontWeight: 600,
+              background: 'var(--surface2)', border: '1px solid var(--line)',
+              color: 'var(--text)', cursor: 'pointer',
+            }}>🏦 Accounts & Payees</button>
+
             <CalendarCard
               nextPayday={data.nextPayday}
               bills={data.bills}
@@ -255,6 +263,8 @@ export default function App() {
           onDone={() => { setBillModal({ open: false }); load(); }}
         />
       )}
+
+      {accountsModal && <AccountsModal onClose={() => setAccountsModal(false)} />}
 
       {categoryModal.open && (
         <CategoryModal
