@@ -3,6 +3,7 @@ import { Bill, Account, Payee } from '../types';
 import { fmtAUD, perFortnight } from '../utils';
 import { createBill, updateBill, deleteBill, fetchAccounts, fetchPayees } from '../api';
 import ConfirmModal from './ConfirmModal';
+import NumberStepper from './NumberStepper';
 
 interface Props {
   bill?: Bill;
@@ -23,14 +24,14 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
     bill?.category ?? (defaultCategory as 'bills' | 'subscriptions' | 'savings') ?? 'bills'
   );
   const [name, setName] = useState(bill?.name ?? '');
-  const [amountStr, setAmountStr] = useState(bill ? String(bill.amount / 100) : '');
+  const [amountStr, setAmountStr] = useState(bill ? (bill.amount / 100).toFixed(2) : '');
   const [frequency, setFrequency] = useState(bill?.frequency ?? 'monthly');
   const [frequencyInterval, setFrequencyInterval] = useState(String(bill?.frequency_interval ?? 1));
   const [dueDay, setDueDay] = useState(bill?.due_day ? String(bill.due_day) : '');
   const [method, setMethod] = useState<'auto' | 'manual'>(bill?.method ?? 'auto');
   const [payeeId, setPayeeId] = useState<string>(bill?.payee_id ? String(bill.payee_id) : '');
   const [notes, setNotes] = useState(bill?.notes ?? '');
-  const [goalTarget, setGoalTarget] = useState(bill?.goal_target ? String(bill.goal_target / 100) : '');
+  const [goalTarget, setGoalTarget] = useState(bill?.goal_target ? (bill.goal_target / 100).toFixed(2) : '');
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [payees, setPayees] = useState<Payee[]>([]);
   const [accountId, setAccountId] = useState<string>(bill?.account_id ? String(bill.account_id) : '');
@@ -128,6 +129,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
               <input
                 value={amountStr}
                 onChange={e => setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
+                onBlur={() => amountStr && setAmountStr(parseFloat(amountStr).toFixed(2))}
                 placeholder="0" className="sg"
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 15, fontWeight: 600 }} />
             </div>
@@ -141,12 +143,12 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
             <div style={label}>HOW OFTEN</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <span style={{ fontSize: 13, color: 'var(--muted)', alignSelf: 'center', flexShrink: 0 }}>Every</span>
-              <input
+              <NumberStepper
                 value={frequencyInterval}
-                onChange={e => setFrequencyInterval(e.target.value.replace(/\D/g, ''))}
-                onBlur={() => setFrequencyInterval(String(parseInt(frequencyInterval, 10) || 1))}
-                type="number" min="1"
-                style={{ width: 56, background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 8px', color: 'var(--text)', fontSize: 13, outline: 'none', textAlign: 'center' }}
+                onChange={setFrequencyInterval}
+                min={1}
+                align="center"
+                style={{ width: 76, flexShrink: 0 }}
               />
               <select value={frequency} onChange={e => setFrequency(e.target.value)}
                 style={{ flex: 1, minWidth: 0, ...selectStyle }}>
@@ -169,22 +171,26 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
                 background: dueDay === '' ? 'rgba(124,108,240,0.14)' : 'var(--surface2)',
                 color: dueDay === '' ? 'var(--text)' : 'var(--muted)',
               }}>On payday</button>
-              <input
+              <NumberStepper
                 value={dueDay}
-                onChange={e => setDueDay(e.target.value.replace(/\D/g, ''))}
+                onChange={setDueDay}
+                min={1} max={31} allowEmpty
                 placeholder="Day #"
-                type="number" min="1" max="31"
+                align="center"
                 style={{
                   flex: 1, background: dueDay !== '' ? 'var(--surface2)' : 'transparent',
                   border: dueDay !== '' ? '1.5px solid var(--accent)' : '1px solid var(--line)',
-                  borderRadius: 9, padding: '10px 10px', color: 'var(--text)', fontSize: 13, outline: 'none',
-                  textAlign: 'center',
                 }}
               />
             </div>
           ) : (
-            <input value={dueDay} onChange={e => setDueDay(e.target.value.replace(/\D/g, ''))}
-              placeholder="e.g. 1" type="number" min="1" max="31" style={inputStyle} />
+            <NumberStepper
+              value={dueDay}
+              onChange={setDueDay}
+              min={1} max={31} allowEmpty
+              placeholder="e.g. 1"
+              style={{ width: '100%' }}
+            />
           )}
         </div>
 
@@ -195,6 +201,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px' }}>
               <span style={{ color: 'var(--muted)', marginRight: 4 }}>$</span>
               <input value={goalTarget} onChange={e => setGoalTarget(e.target.value.replace(/[^\d.]/g, ''))}
+                onBlur={() => goalTarget && setGoalTarget(parseFloat(goalTarget).toFixed(2))}
                 placeholder="10000" className="sg"
                 style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 15, fontWeight: 600 }} />
             </div>
