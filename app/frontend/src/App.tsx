@@ -11,6 +11,7 @@ import BonusPaydayCard from './components/BonusPaydayCard';
 import CategoryModal, { Category } from './components/CategoryModal';
 import SavingsChecklist from './components/SavingsChecklist';
 import AccountsModal from './components/AccountsModal';
+import BillHistoryCard from './components/BillHistoryCard';
 import { Bill } from './types';
 
 export default function App() {
@@ -217,6 +218,12 @@ export default function App() {
               background: 'var(--surface2)', border: '1px solid var(--line)',
               color: 'var(--text)', cursor: 'pointer',
             }}>🏦 Accounts & Payees</button>
+
+            <BillHistoryCard
+              bills={data.bills}
+              subscriptions={data.subscriptions}
+              onLogged={load}
+            />
 
             <CalendarCard
               nextPayday={data.nextPayday}

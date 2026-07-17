@@ -64,6 +64,18 @@ router.patch('/:id/order', (req, res) => {
 });
 
 // Payment history
+router.get('/payments/recent', (req, res) => {
+  const db = getDb();
+  const rows = db.prepare(`
+    SELECT bp.*, b.name as bill_name
+    FROM bill_payments bp
+    JOIN bills b ON b.id = bp.bill_id
+    ORDER BY bp.created_at DESC, bp.id DESC
+    LIMIT 20
+  `).all();
+  res.json(rows);
+});
+
 router.get('/:id/payments', (req, res) => {
   const db = getDb();
   res.json(db.prepare('SELECT * FROM bill_payments WHERE bill_id=? ORDER BY paid_date DESC, id DESC').all(req.params.id));

@@ -80,3 +80,13 @@ export interface Payee {
   number: string | null;
   reference: string | null;
 }
+
+export interface BillPayment {
+  id: number;
+  bill_id: number;
+  amount: number;
+  paid_date: string | null;
+  note: string | null;
+  created_at: string;
+  bill_name?: string;
+}

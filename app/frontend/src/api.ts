@@ -31,6 +31,26 @@ export async function deleteBill(id: number) {
   return r.json();
 }
 
+export async function fetchBillPayments(billId: number) {
+  const r = await fetch(`${BASE}/bills/${billId}/payments`);
+  return r.json();
+}
+
+export async function fetchRecentPayments() {
+  const r = await fetch(`${BASE}/bills/payments/recent`);
+  return r.json();
+}
+
+export async function createBillPayment(billId: number, data: { amount: number; paid_date?: string | null }) {
+  const r = await fetch(`${BASE}/bills/${billId}/payments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  return r.json();
+}
+
+export async function deleteBillPayment(billId: number, paymentId: number) {
+  const r = await fetch(`${BASE}/bills/${billId}/payments/${paymentId}`, { method: 'DELETE' });
+  return r.json();
+}
+
 export async function createFundAdjustment(data: { kind: string; amount: number; purpose?: string; destination?: string }) {
   const r = await fetch(`${BASE}/funds`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   return r.json();

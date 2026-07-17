@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Bill, Account, Payee } from '../types';
+import { Bill, Account, Payee, BillPayment } from '../types';
 import { fmtAUD, perFortnight } from '../utils';
-import { createBill, updateBill, deleteBill, fetchAccounts, fetchPayees } from '../api';
+import { createBill, updateBill, deleteBill, fetchAccounts, fetchPayees, fetchBillPayments } from '../api';
 import ConfirmModal from './ConfirmModal';
 import NumberStepper from './NumberStepper';
 import Dropdown from './Dropdown';
@@ -39,13 +39,24 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
   const [accountId, setAccountId] = useState<string>(bill?.account_id ? String(bill.account_id) : '');
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [payments, setPayments] = useState<BillPayment[]>([]);
+  const [useAverage, setUseAverage] = useState(bill?.use_average === 1);
 
   useEffect(() => {
     fetchAccounts().then(setAccounts);
     fetchPayees().then(setPayees);
   }, []);
 
-  const amountCents = Math.round(parseFloat(amountStr || '0') * 100);
+  useEffect(() => {
+    if (bill?.id) fetchBillPayments(bill.id).then(setPayments);
+  }, [bill?.id]);
+
+  const avgCents = payments.length
+    ? Math.round(payments.reduce((s, p) => s + p.amount, 0) / payments.length)
+    : 0;
+
+  const manualCents = Math.round(parseFloat(amountStr || '0') * 100);
+  const amountCents = useAverage && avgCents ? avgCents : manualCents;
   const intervalNum = parseInt(frequencyInterval, 10) || 1;
   const pfCents = perFortnight(amountCents, frequency, intervalNum);
 
@@ -66,7 +77,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
         method, notes,
         goal_target: goalTarget ? Math.round(parseFloat(goalTarget) * 100) : null,
         goal_saved: bill?.goal_saved ?? null,
-        use_average: bill?.use_average === 1,
+        use_average: useAverage,
         savings_mode: method,
       };
 
@@ -118,20 +129,43 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
         {/* Amount + Frequency */}
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
-            <div style={label}>AMOUNT</div>
-            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <div style={{ ...label, marginBottom: 0 }}>AMOUNT</div>
+              <label
+                title={avgCents ? '' : 'No payment history yet'}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600,
+                  color: avgCents ? 'var(--muted)' : 'var(--line)',
+                  cursor: avgCents ? 'pointer' : 'default', marginLeft: 'auto',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={useAverage}
+                  disabled={!avgCents}
+                  onChange={e => setUseAverage(e.target.checked)}
+                  style={{ margin: 0, accentColor: 'var(--accent)', cursor: avgCents ? 'pointer' : 'default' }}
+                />
+                Historic
+              </label>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', background: useAverage ? 'rgba(62,207,142,0.07)' : 'var(--surface2)', border: `1px solid ${useAverage ? '#3ecf8e55' : 'var(--line)'}`, borderRadius: 10, padding: '10px 14px' }}>
               <span style={{ color: 'var(--muted)', marginRight: 4 }}>$</span>
               <input
-                value={amountStr}
-                onChange={e => setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
-                onBlur={() => amountStr && setAmountStr(parseFloat(amountStr).toFixed(2))}
+                value={useAverage ? (avgCents / 100).toFixed(2) : amountStr}
+                onChange={e => !useAverage && setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
+                onBlur={() => !useAverage && amountStr && setAmountStr(parseFloat(amountStr).toFixed(2))}
+                readOnly={useAverage}
                 placeholder="0" className="sg"
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 15, fontWeight: 600 }} />
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: useAverage ? '#3ecf8e' : 'var(--text)', fontSize: 15, fontWeight: 600, cursor: useAverage ? 'default' : 'text' }} />
+              {useAverage && <span style={{ fontSize: 10, color: '#3ecf8e', fontWeight: 700, letterSpacing: '0.05em', flexShrink: 0 }}>AVG</span>}
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6, minHeight: 18 }}>
-              {amountCents > 0 && (
-                <>↳ sets aside <strong style={{ color: 'var(--text)' }}>{fmtAUD(pfCents)}</strong>/fn</>
-              )}
+              {useAverage
+                ? <>based on <strong style={{ color: 'var(--text)' }}>{payments.length}</strong> logged payment{payments.length === 1 ? '' : 's'}</>
+                : amountCents > 0 && (
+                  <>↳ sets aside <strong style={{ color: 'var(--text)' }}>{fmtAUD(pfCents)}</strong>/fn</>
+                )}
             </div>
           </div>
           <div style={{ flex: 1 }}>
