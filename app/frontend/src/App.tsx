@@ -45,11 +45,6 @@ export default function App() {
     loadCategories();
   }, [loadCategories]);
 
-  const moveItem = useCallback(async (id: number, dir: 'up' | 'down') => {
-    await fetch(`/api/bills/${id}/order`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ direction: dir }) });
-    load();
-  }, [load]);
-
   useEffect(() => { loadCategories(); }, [loadCategories]);
 
   useEffect(() => { load(); }, [load]);
@@ -108,7 +103,6 @@ export default function App() {
                   onEdit:         (bill: Bill) => setBillModal({ open: true, bill }),
                   onEditCategory: () => setCategoryModal({ open: true, category: cat }),
                   onMoveCategory: (dir: 'up' | 'down') => moveCategory(cat.id!, dir),
-                  onMoveItem:     (id: number, dir: 'up' | 'down') => moveItem(id, dir),
                   onContribute:   async (id: number) => { await fetch(`/api/bills/${id}/contribute`, { method: 'POST' }); load(); },
                   isFirst, isLast,
                 };

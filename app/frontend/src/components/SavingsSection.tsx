@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bill } from '../types';
-import { fmtAUD } from '../utils';
+import { fmtAUD, sortItems, SortState } from '../utils';
+import SortMenu from './SortMenu';
 
 interface Props {
   title?: string;
@@ -12,7 +13,6 @@ interface Props {
   onEdit?: (bill: Bill) => void;
   onEditCategory?: () => void;
   onMoveCategory?: (dir: 'up' | 'down') => void;
-  onMoveItem?: (id: number, dir: 'up' | 'down') => void;
   onContribute?: (id: number) => void;
   isFirst?: boolean;
   isLast?: boolean;
@@ -40,8 +40,10 @@ function OrderBtn({ onClick, disabled, children }: { onClick: () => void; disabl
   );
 }
 
-export default function SavingsSection({ title = 'Savings', items, total, accentColor = '#feca57', editMode, onAdd, onEdit, onEditCategory, onMoveCategory, onMoveItem, onContribute, isFirst, isLast }: Props) {
+export default function SavingsSection({ title = 'Savings', items, total, accentColor = '#feca57', editMode, onAdd, onEdit, onEditCategory, onMoveCategory, onContribute, isFirst, isLast }: Props) {
   const COLOR = accentColor;
+  const [sort, setSort] = useState<SortState | null>(null);
+  const sortedItems = sortItems(items, sort);
   return (
     <div style={{ background: `${COLOR}08`, borderRadius: 12, overflow: 'hidden' }}>
       <div style={{
@@ -69,12 +71,14 @@ export default function SavingsSection({ title = 'Savings', items, total, accent
           background: `${COLOR}1a`, borderRadius: 6,
           padding: '2px 8px', letterSpacing: '0.02em',
         }}>{items.length}</div>
-        <div style={{ flex: 1 }} />
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <SortMenu value={sort} onChange={setSort} color={COLOR} />
+        </div>
         <div className="sg" style={{ fontWeight: 700, fontSize: 17, color: COLOR }}>{fmtAUD(total)}/fn</div>
       </div>
 
       <div style={{ padding: '0 20px 12px' }}>
-        {items.map((item, i) => {
+        {sortedItems.map((item, i) => {
           const saved = item.goal_saved ?? 0;
           const target = item.goal_target ?? 1;
           const pct = Math.min(100, Math.round(saved / target * 100));
@@ -86,12 +90,6 @@ export default function SavingsSection({ title = 'Savings', items, total, accent
                 padding: '10px 0', borderTop: i === 0 ? 'none' : `1px solid ${COLOR}25`,
               }}
             >
-              {editMode && onMoveItem && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0, paddingTop: 2 }}>
-                  <OrderBtn onClick={() => onMoveItem(item.id, 'up')} disabled={i === 0}>▲</OrderBtn>
-                  <OrderBtn onClick={() => onMoveItem(item.id, 'down')} disabled={i === items.length - 1}>▼</OrderBtn>
-                </div>
-              )}
               <div
                 onClick={() => editMode && onEdit?.(item)}
                 style={{ flex: 1, minWidth: 0, cursor: editMode && onEdit ? 'pointer' : 'default' }}

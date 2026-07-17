@@ -4,6 +4,7 @@ import { fmtAUD, perFortnight } from '../utils';
 import { createBill, updateBill, deleteBill, fetchAccounts, fetchPayees } from '../api';
 import ConfirmModal from './ConfirmModal';
 import NumberStepper from './NumberStepper';
+import Dropdown from './Dropdown';
 
 interface Props {
   bill?: Bill;
@@ -97,15 +98,6 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
         width: 540, boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
         display: 'flex', flexDirection: 'column', gap: 18, margin: 'auto',
       }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{
-            background: 'var(--surface2)', border: '1px solid var(--line)',
-            borderRadius: 8, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, color: 'var(--muted)', cursor: 'pointer',
-          }}>✕</button>
-        </div>
-
         {/* Name + Category */}
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 2 }}>
@@ -114,9 +106,11 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
           </div>
           <div style={{ flex: 1 }}>
             <div style={label}>CATEGORY</div>
-            <select value={category} onChange={e => setCategory(e.target.value as 'bills' | 'subscriptions' | 'savings')} style={selectStyle}>
-              {catOptions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
+            <Dropdown
+              value={category}
+              onChange={v => setCategory(v as 'bills' | 'subscriptions' | 'savings')}
+              options={catOptions}
+            />
           </div>
         </div>
 

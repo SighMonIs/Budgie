@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bill } from '../types';
-import { fmtAUD, ordinal } from '../utils';
+import { fmtAUD, ordinal, sortItems, SortState } from '../utils';
+import SortMenu from './SortMenu';
 
 interface Props {
   title: string;
@@ -12,7 +13,6 @@ interface Props {
   onEdit?: (bill: Bill) => void;
   onEditCategory?: () => void;
   onMoveCategory?: (dir: 'up' | 'down') => void;
-  onMoveItem?: (id: number, dir: 'up' | 'down') => void;
   isFirst?: boolean;
   isLast?: boolean;
 }
@@ -39,7 +39,9 @@ function OrderBtn({ onClick, disabled, children }: { onClick: () => void; disabl
   );
 }
 
-export default function BillsSection({ title, accentColor, items, total, editMode, onAdd, onEdit, onEditCategory, onMoveCategory, onMoveItem, isFirst, isLast }: Props) {
+export default function BillsSection({ title, accentColor, items, total, editMode, onAdd, onEdit, onEditCategory, onMoveCategory, isFirst, isLast }: Props) {
+  const [sort, setSort] = useState<SortState | null>(null);
+  const sortedItems = sortItems(items, sort);
   return (
     <div style={{ background: `${accentColor}08`, borderRadius: 12, overflow: 'hidden' }}>
       <div style={{
@@ -67,12 +69,14 @@ export default function BillsSection({ title, accentColor, items, total, editMod
           background: `${accentColor}1a`, borderRadius: 6,
           padding: '2px 8px', letterSpacing: '0.02em',
         }}>{items.length}</div>
-        <div style={{ flex: 1 }} />
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <SortMenu value={sort} onChange={setSort} color={accentColor} />
+        </div>
         <div className="sg" style={{ fontWeight: 700, fontSize: 17, color: accentColor }}>{fmtAUD(total)}/fn</div>
       </div>
 
       <div style={{ padding: '0 20px 12px' }}>
-        {items.map((item, i) => (
+        {sortedItems.map((item, i) => (
           <div
             key={item.id}
             style={{
@@ -80,12 +84,6 @@ export default function BillsSection({ title, accentColor, items, total, editMod
               padding: '9px 0', borderTop: i === 0 ? 'none' : '1px solid var(--line)',
             }}
           >
-            {editMode && onMoveItem && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
-                <OrderBtn onClick={() => onMoveItem(item.id, 'up')} disabled={i === 0}>▲</OrderBtn>
-                <OrderBtn onClick={() => onMoveItem(item.id, 'down')} disabled={i === items.length - 1}>▼</OrderBtn>
-              </div>
-            )}
             <div
               onClick={() => editMode && onEdit?.(item)}
               style={{

@@ -22,6 +22,30 @@ export function perFortnight(amountCents: number, frequency: string, interval: n
   return Math.round(amountCents * (14 / totalDays));
 }
 
+export type SortField = 'name' | 'due' | 'total';
+export type SortDir = 'asc' | 'desc';
+export interface SortState {
+  field: SortField;
+  dir: SortDir;
+}
+
+export function sortItems<T extends { name: string; due_day: number | null; perFortnight: number }>(
+  items: T[], sort: SortState | null
+): T[] {
+  if (!sort) return items;
+  const dir = sort.dir === 'asc' ? 1 : -1;
+  const arr = [...items];
+  arr.sort((a, b) => {
+    if (sort.field === 'name') return a.name.localeCompare(b.name) * dir;
+    if (sort.field === 'due') {
+      const av = a.due_day ?? 999, bv = b.due_day ?? 999;
+      return (av - bv) * dir;
+    }
+    return (a.perFortnight - b.perFortnight) * dir;
+  });
+  return arr;
+}
+
 export function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
