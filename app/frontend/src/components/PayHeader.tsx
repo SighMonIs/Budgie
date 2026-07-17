@@ -65,11 +65,6 @@ export default function PayHeader({ totals, nextPayday, frequency, pendingPay, e
   });
   const donutBg = `conic-gradient(${[...donutSegments, `rgba(140,143,156,0.28) ${cursor}% 100%`].join(', ')})`;
 
-  const stats = [
-    ...catStats,
-    { label: 'Leftover', value: leftover, color: 'var(--accent)' },
-  ];
-
   const fieldStyle: React.CSSProperties = {
     background: 'var(--surface2)', border: '1px solid var(--accent)',
     borderRadius: 8, color: 'var(--text)', outline: 'none',
@@ -106,7 +101,7 @@ export default function PayHeader({ totals, nextPayday, frequency, pendingPay, e
       </div>
 
       <div style={{ padding: '20px 26px' }}>
-      <div style={{ display: 'flex', gap: 26, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 26, alignItems: 'flex-start' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
 
           {/* Frequency label / pill toggle */}
@@ -166,19 +161,6 @@ export default function PayHeader({ totals, nextPayday, frequency, pendingPay, e
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 20 }}>
-            {stats.map(s => (
-              <div key={s.label} style={{ background: 'var(--surface2)', borderRadius: 10, padding: '11px 14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: 'var(--muted)' }}>{s.label}</span>
-                </div>
-                <div className="sg" style={{ fontSize: 18, fontWeight: 600, marginTop: 3, color: s.color }}>
-                  {fmtAUD(s.value)}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Donut */}

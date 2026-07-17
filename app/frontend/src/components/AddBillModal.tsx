@@ -5,6 +5,7 @@ import { createBill, updateBill, deleteBill, fetchAccounts, fetchPayees } from '
 import ConfirmModal from './ConfirmModal';
 import NumberStepper from './NumberStepper';
 import Dropdown from './Dropdown';
+import DayOfMonthPicker from './DayOfMonthPicker';
 
 interface Props {
   bill?: Bill;
@@ -165,17 +166,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
                 background: dueDay === '' ? 'rgba(124,108,240,0.14)' : 'var(--surface2)',
                 color: dueDay === '' ? 'var(--text)' : 'var(--muted)',
               }}>On payday</button>
-              <NumberStepper
-                value={dueDay}
-                onChange={setDueDay}
-                min={1} max={31} allowEmpty
-                placeholder="Day #"
-                align="center"
-                style={{
-                  flex: 1, background: dueDay !== '' ? 'var(--surface2)' : 'transparent',
-                  border: dueDay !== '' ? '1.5px solid var(--accent)' : '1px solid var(--line)',
-                }}
-              />
+              <DayOfMonthPicker value={dueDay} onChange={setDueDay} />
             </div>
           ) : (
             <NumberStepper
