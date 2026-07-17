@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Bill } from '../types';
 import { fmtAUD, sortItems, SortState } from '../utils';
 import SortMenu from './SortMenu';
+import CategoryOrderButton from './CategoryOrderButton';
 
 interface Props {
   title?: string;
@@ -18,28 +19,6 @@ interface Props {
   isLast?: boolean;
 }
 
-function OrderBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
-  const [hovered, setHovered] = React.useState(false);
-  return (
-    <button
-      onClick={e => { e.stopPropagation(); if (!disabled) onClick(); }}
-      disabled={disabled}
-      onMouseEnter={() => !disabled && setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: 18, height: 16, borderRadius: 4, border: 'none',
-        background: disabled ? 'transparent' : hovered ? 'var(--accent)' : 'var(--surface2)',
-        color: disabled ? 'transparent' : hovered ? '#fff' : 'var(--muted)',
-        cursor: disabled ? 'default' : 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 9, lineHeight: 1, padding: 0,
-        transition: 'background 0.15s, color 0.15s',
-        flexShrink: 0,
-      }}
-    >{children}</button>
-  );
-}
-
 export default function SavingsSection({ title = 'Savings', items, total, accentColor = '#feca57', editMode, onAdd, onEdit, onEditCategory, onMoveCategory, onContribute, isFirst, isLast }: Props) {
   const COLOR = accentColor;
   const [sort, setSort] = useState<SortState | null>(null);
@@ -54,8 +33,8 @@ export default function SavingsSection({ title = 'Savings', items, total, accent
       }}>
         {editMode && onMoveCategory && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <OrderBtn onClick={() => onMoveCategory('up')} disabled={!!isFirst}>▲</OrderBtn>
-            <OrderBtn onClick={() => onMoveCategory('down')} disabled={!!isLast}>▼</OrderBtn>
+            <CategoryOrderButton direction="up" onClick={() => onMoveCategory('up')} disabled={!!isFirst} />
+            <CategoryOrderButton direction="down" onClick={() => onMoveCategory('down')} disabled={!!isLast} />
           </div>
         )}
         <span style={{ width: 10, height: 10, borderRadius: 3, background: COLOR, flexShrink: 0 }} />
