@@ -36,5 +36,3 @@ button { cursor: pointer; font-family: inherit; }
 input, select, textarea { font-family: inherit; }
 
 .sg { font-family: 'Space Grotesk', sans-serif; }
-
-.dropdown-item:hover { background: rgba(124,108,240,0.14); }

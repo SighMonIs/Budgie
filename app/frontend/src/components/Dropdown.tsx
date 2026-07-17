@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DropdownItem from './DropdownItem';
 
 interface Option {
   value: string;
@@ -42,18 +43,11 @@ export default function Dropdown({ value, options, onChange, style }: Props) {
             padding: 6, zIndex: 41, boxShadow: '0 12px 28px rgba(0,0,0,0.35)',
           }}>
             {options.map(opt => (
-              <button
+              <DropdownItem
                 key={opt.value}
-                type="button"
-                className="dropdown-item"
+                active={opt.value === value}
                 onClick={() => { onChange(opt.value); setOpen(false); }}
-                style={{
-                  width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 8,
-                  border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                  background: opt.value === value ? 'rgba(124,108,240,0.14)' : 'transparent',
-                  color: opt.value === value ? 'var(--text)' : 'var(--muted)',
-                }}
-              >{opt.label}</button>
+              >{opt.label}</DropdownItem>
             ))}
           </div>
         </>

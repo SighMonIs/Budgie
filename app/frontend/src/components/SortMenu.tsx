@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SortField, SortState } from '../utils';
+import DropdownItem from './DropdownItem';
 
 interface Props {
   value: SortState | null;
@@ -56,18 +57,11 @@ export default function SortMenu({ value, onChange, color }: Props) {
             {OPTIONS.map(opt => {
               const active = value?.field === opt.field;
               return (
-                <button
+                <DropdownItem
                   key={opt.field}
-                  type="button"
-                  className="dropdown-item"
+                  active={active}
                   onClick={() => pick(opt.field)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '7px 8px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                    background: active ? 'rgba(124,108,240,0.14)' : 'transparent',
-                    color: active ? 'var(--text)' : 'var(--muted)',
-                    fontSize: 12.5, fontWeight: 600, textAlign: 'left',
-                  }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 8px', fontSize: 12.5 }}
                 >
                   {opt.label}
                   {active && (
@@ -75,7 +69,7 @@ export default function SortMenu({ value, onChange, color }: Props) {
                       <path d={value!.dir === 'asc' ? 'M1 5L5 1L9 5' : 'M1 1L5 5L9 1'} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   )}
-                </button>
+                </DropdownItem>
               );
             })}
           </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ordinal } from '../utils';
+import DropdownItem from './DropdownItem';
 
 interface Props {
   value: string;
@@ -38,18 +39,12 @@ export default function DayOfMonthPicker({ value, onChange, style }: Props) {
           }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
               {DAYS.map(d => (
-                <button
+                <DropdownItem
                   key={d}
-                  type="button"
-                  className="dropdown-item"
+                  active={day === d}
                   onClick={() => { onChange(String(d)); setOpen(false); }}
-                  style={{
-                    padding: '7px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                    fontSize: 12, fontWeight: 600, textAlign: 'center',
-                    background: day === d ? 'rgba(124,108,240,0.14)' : 'transparent',
-                    color: day === d ? 'var(--text)' : 'var(--muted)',
-                  }}
-                >{d}</button>
+                  style={{ padding: '7px 0', borderRadius: 6, fontSize: 12, textAlign: 'center' }}
+                >{d}</DropdownItem>
               ))}
             </div>
           </div>
