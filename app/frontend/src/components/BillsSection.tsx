@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bill } from '../types';
-import { fmtAUD } from '../utils';
+import { fmtAUD, ordinal } from '../utils';
 
 interface Props {
   title: string;
@@ -68,7 +68,7 @@ export default function BillsSection({ title, accentColor, items, total, editMod
           padding: '2px 8px', letterSpacing: '0.02em',
         }}>{items.length}</div>
         <div style={{ flex: 1 }} />
-        <div className="sg" style={{ fontWeight: 700, fontSize: 17, color: accentColor }}>{fmtAUD(total)}</div>
+        <div className="sg" style={{ fontWeight: 700, fontSize: 17, color: accentColor }}>{fmtAUD(total)}/fn</div>
       </div>
 
       <div style={{ padding: '0 20px 12px' }}>
@@ -98,7 +98,7 @@ export default function BillsSection({ title, accentColor, items, total, editMod
                 {item.payee_name ?? '—'} · {item.account_name ?? '—'}
               </div>
               <div style={{ fontSize: 11, color: 'var(--muted)', width: 60, textAlign: 'right' }}>
-                {item.due_day ? `due ${item.due_day}th` : '—'}
+                {item.due_day ? `due ${ordinal(item.due_day)}` : '—'}
               </div>
               {item.method === 'auto' ? (
                 <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3ecf8e', background: 'rgba(62,207,142,0.13)', padding: '3px 8px', borderRadius: 5 }}>AUTO</div>

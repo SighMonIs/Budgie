@@ -16,6 +16,7 @@ export interface Bill {
   name: string;
   amount: number;
   frequency: string;
+  frequency_interval: number;
   due_day: number | null;
   due_date: string | null;
   account_id: number | null;

@@ -18,8 +18,8 @@ interface Props {
   onDone: () => void;
 }
 
-const FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'monthly_half', 'quarterly', 'yearly'];
-const FREQ_LABELS: Record<string, string> = { weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly', monthly_half: 'Monthly (÷ 2)', quarterly: 'Quarterly', yearly: 'Yearly' };
+const FREQUENCIES = ['daily', 'weekly', 'monthly'];
+const FREQ_LABELS: Record<string, string> = { daily: 'Days', weekly: 'Weeks', monthly: 'Months' };
 
 export default function AddBillModal({ bill, defaultCategory, onClose, onDone }: Props) {
   const [category, setCategory] = useState<'bills' | 'subscriptions' | 'savings'>(
@@ -28,6 +28,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
   const [name, setName] = useState(bill?.name ?? '');
   const [amountStr, setAmountStr] = useState(bill ? String(bill.amount / 100) : '');
   const [frequency, setFrequency] = useState(bill?.frequency ?? 'monthly');
+  const [frequencyInterval, setFrequencyInterval] = useState(String(bill?.frequency_interval ?? 1));
   const [dueDay, setDueDay] = useState(bill?.due_day ? String(bill.due_day) : '');
   const [method, setMethod] = useState<'auto' | 'manual'>(bill?.method ?? 'auto');
   const [payeeName, setPayeeName] = useState(bill?.payee_name ?? '');
@@ -81,7 +82,8 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
   }
 
   const amountCents = useAverage && avgCents ? avgCents : Math.round(parseFloat(amountStr || '0') * 100);
-  const pfCents = perFortnight(amountCents, frequency);
+  const intervalNum = parseInt(frequencyInterval, 10) || 1;
+  const pfCents = perFortnight(amountCents, frequency, intervalNum);
 
   const catOptions: { value: 'bills' | 'subscriptions' | 'savings'; label: string; color: string }[] = [
     { value: 'bills', label: 'Bills', color: '#ff6b5e' },
@@ -105,7 +107,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
       }
 
       const payload = {
-        category, name, amount: amountCents, frequency,
+        category, name, amount: amountCents, frequency, frequency_interval: intervalNum,
         due_day: dueDay ? parseInt(dueDay) : null,
         account_id: accountId ? parseInt(accountId) : null,
         payee_id: payeeId,
@@ -211,10 +213,20 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>HOW OFTEN</div>
-            <select value={frequency} onChange={e => setFrequency(e.target.value)}
-              style={{ width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none' }}>
-              {FREQUENCIES.map(f => <option key={f} value={f}>{FREQ_LABELS[f]}</option>)}
-            </select>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <span style={{ fontSize: 13, color: 'var(--muted)', alignSelf: 'center', flexShrink: 0 }}>Every</span>
+              <input
+                value={frequencyInterval}
+                onChange={e => setFrequencyInterval(e.target.value.replace(/\D/g, ''))}
+                onBlur={() => setFrequencyInterval(String(parseInt(frequencyInterval, 10) || 1))}
+                type="number" min="1"
+                style={{ width: 56, background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 8px', color: 'var(--text)', fontSize: 13, outline: 'none', textAlign: 'center' }}
+              />
+              <select value={frequency} onChange={e => setFrequency(e.target.value)}
+                style={{ flex: 1, minWidth: 0, background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none' }}>
+                {FREQUENCIES.map(f => <option key={f} value={f}>{FREQ_LABELS[f]}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 

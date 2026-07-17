@@ -1,15 +1,11 @@
 // Frequency normalisation → per-fortnight cents
-export function perFortnight(amountCents, frequency) {
-  const factors = {
-    weekly:       2,
-    fortnightly:  1,
-    monthly:      12 / 26,
-    monthly_half: 0.5,
-    quarterly:    4  / 26,
-    yearly:       1  / 26,
-  };
-  const f = factors[frequency] ?? 1;
-  return Math.round(amountCents * f);
+// frequency is a unit ('daily' | 'weekly' | 'monthly'); interval is "every N units"
+const DAYS_PER_UNIT = { daily: 1, weekly: 7, monthly: 365 / 12 };
+
+export function perFortnight(amountCents, frequency, interval = 1) {
+  const unitDays = DAYS_PER_UNIT[frequency] ?? DAYS_PER_UNIT.monthly;
+  const totalDays = unitDays * Math.max(1, interval || 1);
+  return Math.round(amountCents * (14 / totalDays));
 }
 
 // Detect 3rd-payday months for a given next_payday string
@@ -32,7 +28,7 @@ export function thirdPaydayMonths(nextPaydayISO, count = 6) {
 export function computeTotals(bills) {
   const totals = { bills: 0, subscriptions: 0, savings: 0 };
   for (const b of bills) {
-    const pf = perFortnight(b.amount, b.frequency);
+    const pf = perFortnight(b.amount, b.frequency, b.frequency_interval);
     if (b.category in totals) totals[b.category] += pf;
   }
   return totals;

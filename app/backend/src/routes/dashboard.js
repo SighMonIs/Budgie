@@ -46,15 +46,15 @@ router.get('/', (req, res) => {
 
   const billRows = bills.filter(b => b.category === 'bills').map(b => ({
     ...b,
-    perFortnight: perFortnight(b.amount, b.frequency),
+    perFortnight: perFortnight(b.amount, b.frequency, b.frequency_interval),
   }));
   const subRows = bills.filter(b => b.category === 'subscriptions').map(b => ({
     ...b,
-    perFortnight: perFortnight(b.amount, b.frequency),
+    perFortnight: perFortnight(b.amount, b.frequency, b.frequency_interval),
   }));
   const savingsRows = bills.filter(b => b.category === 'savings').map(b => ({
     ...b,
-    perFortnight: perFortnight(b.amount, b.frequency),
+    perFortnight: perFortnight(b.amount, b.frequency, b.frequency_interval),
   }));
 
   // Calendar: payday dates + due dates for this month

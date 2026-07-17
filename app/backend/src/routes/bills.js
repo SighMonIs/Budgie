@@ -14,21 +14,21 @@ router.get('/', (req, res) => {
 
 router.post('/', (req, res) => {
   const db = getDb();
-  const { category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode } = req.body;
+  const { category, name, amount, frequency, frequency_interval, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode } = req.body;
   const result = db.prepare(`
-    INSERT INTO bills (category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(category, name, amount, frequency, due_day ?? null, due_date ?? null, account_id ?? null, payee_id ?? null, method ?? 'auto', notes ?? null, goal_target ?? null, goal_saved ?? null, goal_deadline ?? null, use_average ? 1 : 0, savings_mode ?? 'manual');
+    INSERT INTO bills (category, name, amount, frequency, frequency_interval, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(category, name, amount, frequency, frequency_interval ?? 1, due_day ?? null, due_date ?? null, account_id ?? null, payee_id ?? null, method ?? 'auto', notes ?? null, goal_target ?? null, goal_saved ?? null, goal_deadline ?? null, use_average ? 1 : 0, savings_mode ?? 'manual');
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
 router.put('/:id', (req, res) => {
   const db = getDb();
-  const { category, name, amount, frequency, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode } = req.body;
+  const { category, name, amount, frequency, frequency_interval, due_day, due_date, account_id, payee_id, method, notes, goal_target, goal_saved, goal_deadline, use_average, savings_mode } = req.body;
   db.prepare(`
-    UPDATE bills SET category=?, name=?, amount=?, frequency=?, due_day=?, due_date=?, account_id=?, payee_id=?, method=?, notes=?, goal_target=?, goal_saved=?, goal_deadline=?, use_average=?, savings_mode=?
+    UPDATE bills SET category=?, name=?, amount=?, frequency=?, frequency_interval=?, due_day=?, due_date=?, account_id=?, payee_id=?, method=?, notes=?, goal_target=?, goal_saved=?, goal_deadline=?, use_average=?, savings_mode=?
     WHERE id=?
-  `).run(category, name, amount, frequency, due_day ?? null, due_date ?? null, account_id ?? null, payee_id ?? null, method ?? 'auto', notes ?? null, goal_target ?? null, goal_saved ?? null, goal_deadline ?? null, use_average ? 1 : 0, savings_mode ?? 'manual', req.params.id);
+  `).run(category, name, amount, frequency, frequency_interval ?? 1, due_day ?? null, due_date ?? null, account_id ?? null, payee_id ?? null, method ?? 'auto', notes ?? null, goal_target ?? null, goal_saved ?? null, goal_deadline ?? null, use_average ? 1 : 0, savings_mode ?? 'manual', req.params.id);
   res.json({ ok: true });
 });
 

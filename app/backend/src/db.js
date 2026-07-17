@@ -104,8 +104,15 @@ function migrate(db) {
   try { db.exec(`ALTER TABLE bills ADD COLUMN sort_order INTEGER`); } catch {}
   try { db.exec(`ALTER TABLE bills ADD COLUMN savings_mode TEXT NOT NULL DEFAULT 'manual'`); } catch {}
   try { db.exec(`ALTER TABLE bills ADD COLUMN last_contributed_at TEXT`); } catch {}
+  try { db.exec(`ALTER TABLE bills ADD COLUMN frequency_interval INTEGER NOT NULL DEFAULT 1`); } catch {}
   db.exec(`UPDATE categories SET sort_order = id WHERE sort_order IS NULL`);
   db.exec(`UPDATE bills SET sort_order = id WHERE sort_order IS NULL`);
+
+  // Collapse the old fixed frequency enum down to unit + interval (days/weeks/months)
+  db.exec(`UPDATE bills SET frequency = 'weekly',  frequency_interval = 2 WHERE frequency = 'fortnightly'`);
+  db.exec(`UPDATE bills SET frequency = 'monthly', frequency_interval = 1 WHERE frequency = 'monthly_half'`);
+  db.exec(`UPDATE bills SET frequency = 'monthly', frequency_interval = 3 WHERE frequency = 'quarterly'`);
+  db.exec(`UPDATE bills SET frequency = 'monthly', frequency_interval = 12 WHERE frequency = 'yearly'`);
 
   // Seed categories if empty
   const catCount = db.prepare('SELECT COUNT(*) as n FROM categories').get();

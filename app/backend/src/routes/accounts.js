@@ -20,7 +20,9 @@ router.put('/:id', (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
-  getDb().prepare('DELETE FROM accounts WHERE id=?').run(req.params.id);
+  const db = getDb();
+  db.prepare('UPDATE bills SET account_id = NULL WHERE account_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM accounts WHERE id=?').run(req.params.id);
   res.json({ ok: true });
 });
 

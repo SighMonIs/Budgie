@@ -3,16 +3,23 @@ export function fmtAUD(cents: number): string {
   return '$' + dollars.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function perFortnight(amountCents: number, frequency: string): number {
-  const factors: Record<string, number> = {
-    weekly:         2,
-    fortnightly:    1,
-    monthly:        12 / 26,
-    monthly_half:   0.5,      // calendar month split evenly: amount ÷ 2
-    quarterly:      4 / 26,
-    yearly:         1 / 26,
-  };
-  return Math.round(amountCents * (factors[frequency] ?? 1));
+export function ordinal(n: number): string {
+  const rem100 = n % 100;
+  if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
+
+const DAYS_PER_UNIT: Record<string, number> = { daily: 1, weekly: 7, monthly: 365 / 12 };
+
+export function perFortnight(amountCents: number, frequency: string, interval: number = 1): number {
+  const unitDays = DAYS_PER_UNIT[frequency] ?? DAYS_PER_UNIT.monthly;
+  const totalDays = unitDays * Math.max(1, interval || 1);
+  return Math.round(amountCents * (14 / totalDays));
 }
 
 export function formatDate(iso: string): string {
