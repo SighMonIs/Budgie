@@ -15,7 +15,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function BillHistoryCard({ bills, subscriptions, onLogged }: Props) {
-  const items = [...bills, ...subscriptions];
+  const items = [...bills, ...subscriptions].filter(b => b.use_average === 1);
   const [billId, setBillId] = useState('');
   const [amountStr, setAmountStr] = useState('');
   const [dateStr, setDateStr] = useState(() => new Date().toISOString().slice(0, 10));
@@ -61,35 +61,42 @@ export default function BillHistoryCard({ bills, subscriptions, onLogged }: Prop
     }}>
       <div style={{ fontSize: 13, fontWeight: 700 }}>Bill history</div>
 
-      <select value={billId} onChange={e => pickBill(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
-        <option value="">Select a bill</option>
-        {items.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-      </select>
-
-      <div style={{ display: 'flex', gap: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', flex: 1, ...inputStyle, padding: '8px 10px' }}>
-          <span style={{ color: 'var(--muted)', marginRight: 4 }}>$</span>
-          <input
-            value={amountStr}
-            onChange={e => setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
-            placeholder="Amount"
-            className="sg"
-            style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 12.5 }}
-          />
+      {items.length === 0 ? (
+        <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
+          Tick "Historic" on a bill in its edit modal to start logging payments for it here.
         </div>
-        <input type="date" value={dateStr} onChange={e => setDateStr(e.target.value)} style={inputStyle} />
-      </div>
+      ) : (
+        <>
+          <select value={billId} onChange={e => pickBill(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
+            <option value="">Select a bill</option>
+            {items.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
 
-      <button
-        onClick={logPayment}
-        disabled={!billId || !amountStr || logging}
-        style={{
-          padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 600, border: 'none',
-          background: billId && amountStr ? 'var(--accent)' : 'var(--surface2)',
-          color: billId && amountStr ? '#fff' : 'var(--muted)',
-          cursor: billId && amountStr ? 'pointer' : 'default',
-        }}
-      >Log payment</button>
+          <div style={{ display: 'flex', alignItems: 'center', width: '100%', ...inputStyle, padding: '8px 10px' }}>
+            <span style={{ color: 'var(--muted)', marginRight: 4 }}>$</span>
+            <input
+              value={amountStr}
+              onChange={e => setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
+              placeholder="Amount"
+              className="sg"
+              style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 12.5 }}
+            />
+          </div>
+
+          <input type="date" value={dateStr} onChange={e => setDateStr(e.target.value)} style={{ ...inputStyle, width: '100%' }} />
+
+          <button
+            onClick={logPayment}
+            disabled={!billId || !amountStr || logging}
+            style={{
+              padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 600, border: 'none',
+              background: billId && amountStr ? 'var(--accent)' : 'var(--surface2)',
+              color: billId && amountStr ? '#fff' : 'var(--muted)',
+              cursor: billId && amountStr ? 'pointer' : 'default',
+            }}
+          >Log payment</button>
+        </>
+      )}
 
       {recent.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 170, overflowY: 'auto', marginTop: 2 }}>

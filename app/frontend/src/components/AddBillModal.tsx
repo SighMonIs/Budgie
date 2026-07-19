@@ -54,9 +54,10 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
   const avgCents = payments.length
     ? Math.round(payments.reduce((s, p) => s + p.amount, 0) / payments.length)
     : 0;
+  const showingAvg = useAverage && avgCents > 0;
 
   const manualCents = Math.round(parseFloat(amountStr || '0') * 100);
-  const amountCents = useAverage && avgCents ? avgCents : manualCents;
+  const amountCents = showingAvg ? avgCents : manualCents;
   const intervalNum = parseInt(frequencyInterval, 10) || 1;
   const pfCents = perFortnight(amountCents, frequency, intervalNum);
 
@@ -132,37 +133,37 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <div style={{ ...label, marginBottom: 0 }}>AMOUNT</div>
               <label
-                title={avgCents ? '' : 'No payment history yet'}
+                title="Track this bill's payments in the sidebar and average them"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600,
-                  color: avgCents ? 'var(--muted)' : 'var(--line)',
-                  cursor: avgCents ? 'pointer' : 'default', marginLeft: 'auto',
+                  color: 'var(--muted)', cursor: 'pointer', marginLeft: 'auto',
                 }}
               >
                 <input
                   type="checkbox"
                   checked={useAverage}
-                  disabled={!avgCents}
                   onChange={e => setUseAverage(e.target.checked)}
-                  style={{ margin: 0, accentColor: 'var(--accent)', cursor: avgCents ? 'pointer' : 'default' }}
+                  style={{ margin: 0, accentColor: 'var(--accent)', cursor: 'pointer' }}
                 />
                 Historic
               </label>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', background: useAverage ? 'rgba(62,207,142,0.07)' : 'var(--surface2)', border: `1px solid ${useAverage ? '#3ecf8e55' : 'var(--line)'}`, borderRadius: 10, padding: '10px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: showingAvg ? 'rgba(62,207,142,0.07)' : 'var(--surface2)', border: `1px solid ${showingAvg ? '#3ecf8e55' : 'var(--line)'}`, borderRadius: 10, padding: '10px 14px' }}>
               <span style={{ color: 'var(--muted)', marginRight: 4 }}>$</span>
               <input
-                value={useAverage ? (avgCents / 100).toFixed(2) : amountStr}
-                onChange={e => !useAverage && setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
-                onBlur={() => !useAverage && amountStr && setAmountStr(parseFloat(amountStr).toFixed(2))}
-                readOnly={useAverage}
+                value={showingAvg ? (avgCents / 100).toFixed(2) : amountStr}
+                onChange={e => !showingAvg && setAmountStr(e.target.value.replace(/[^\d.]/g, ''))}
+                onBlur={() => !showingAvg && amountStr && setAmountStr(parseFloat(amountStr).toFixed(2))}
+                readOnly={showingAvg}
                 placeholder="0" className="sg"
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: useAverage ? '#3ecf8e' : 'var(--text)', fontSize: 15, fontWeight: 600, cursor: useAverage ? 'default' : 'text' }} />
-              {useAverage && <span style={{ fontSize: 10, color: '#3ecf8e', fontWeight: 700, letterSpacing: '0.05em', flexShrink: 0 }}>AVG</span>}
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: showingAvg ? '#3ecf8e' : 'var(--text)', fontSize: 15, fontWeight: 600, cursor: showingAvg ? 'default' : 'text' }} />
+              {showingAvg && <span style={{ fontSize: 10, color: '#3ecf8e', fontWeight: 700, letterSpacing: '0.05em', flexShrink: 0 }}>AVG</span>}
             </div>
             <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6, minHeight: 18 }}>
               {useAverage
-                ? <>based on <strong style={{ color: 'var(--text)' }}>{payments.length}</strong> logged payment{payments.length === 1 ? '' : 's'}</>
+                ? (showingAvg
+                  ? <>based on <strong style={{ color: 'var(--text)' }}>{payments.length}</strong> logged payment{payments.length === 1 ? '' : 's'}</>
+                  : <>log a payment in the sidebar to start averaging</>)
                 : amountCents > 0 && (
                   <>↳ sets aside <strong style={{ color: 'var(--text)' }}>{fmtAUD(pfCents)}</strong>/fn</>
                 )}
