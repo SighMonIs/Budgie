@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Bill, BillPayment } from '../types';
-import { fmtAUD } from '../utils';
-import { fetchRecentPayments, createBillPayment, deleteBillPayment } from '../api';
+import React, { useState } from 'react';
+import { Bill } from '../types';
+import { createBillPayment } from '../api';
 
 interface Props {
   bills: Bill[];
@@ -19,14 +18,7 @@ export default function BillHistoryCard({ bills, subscriptions, onLogged }: Prop
   const [billId, setBillId] = useState('');
   const [amountStr, setAmountStr] = useState('');
   const [dateStr, setDateStr] = useState(() => new Date().toISOString().slice(0, 10));
-  const [recent, setRecent] = useState<BillPayment[]>([]);
   const [logging, setLogging] = useState(false);
-
-  const loadRecent = useCallback(() => {
-    fetchRecentPayments().then(setRecent);
-  }, []);
-
-  useEffect(() => { loadRecent(); }, [loadRecent]);
 
   function pickBill(id: string) {
     setBillId(id);
@@ -41,17 +33,10 @@ export default function BillHistoryCard({ bills, subscriptions, onLogged }: Prop
     try {
       await createBillPayment(parseInt(billId, 10), { amount: cents, paid_date: dateStr || null });
       setAmountStr('');
-      loadRecent();
       onLogged();
     } finally {
       setLogging(false);
     }
-  }
-
-  async function removePayment(p: BillPayment) {
-    await deleteBillPayment(p.bill_id, p.id);
-    loadRecent();
-    onLogged();
   }
 
   return (
@@ -59,7 +44,7 @@ export default function BillHistoryCard({ bills, subscriptions, onLogged }: Prop
       background: 'var(--surface)', border: '1px solid var(--line)',
       borderRadius: 14, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10,
     }}>
-      <div style={{ fontSize: 13, fontWeight: 700 }}>Bill history</div>
+      <div style={{ fontSize: 13, fontWeight: 700 }}>Payment History</div>
 
       {items.length === 0 ? (
         <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
@@ -96,29 +81,6 @@ export default function BillHistoryCard({ bills, subscriptions, onLogged }: Prop
             }}
           >Log payment</button>
         </>
-      )}
-
-      {recent.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 170, overflowY: 'auto', marginTop: 2 }}>
-          {recent.map(p => (
-            <div key={p.id} style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              background: 'var(--surface2)', borderRadius: 8, padding: '6px 10px', fontSize: 11.5,
-            }}>
-              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.bill_name}</span>
-              <span className="sg" style={{ fontWeight: 600, flexShrink: 0 }}>{fmtAUD(p.amount)}</span>
-              {p.paid_date && (
-                <span style={{ color: 'var(--muted)', fontSize: 10.5, flexShrink: 0 }}>
-                  {new Date(p.paid_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
-                </span>
-              )}
-              <button onClick={() => removePayment(p)} style={{
-                background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer',
-                fontSize: 14, lineHeight: 1, padding: 0, flexShrink: 0,
-              }}>×</button>
-            </div>
-          ))}
-        </div>
       )}
     </div>
   );

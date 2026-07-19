@@ -3,6 +3,7 @@ import { Bill } from '../types';
 import { fmtAUD, ordinal, sortItems, SortState } from '../utils';
 import SortMenu from './SortMenu';
 import CategoryOrderButton from './CategoryOrderButton';
+import HistoricIcon from './HistoricIcon';
 
 interface Props {
   title: string;
@@ -70,7 +71,10 @@ export default function BillsSection({ title, accentColor, items, total, editMod
                 cursor: editMode && onEdit ? 'pointer' : 'default',
               }}
             >
-              <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600 }}>{item.name}</div>
+              <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
+                {item.use_average === 1 && <span title="Amount based on payment history" style={{ color: 'var(--muted)' }}><HistoricIcon /></span>}
+              </div>
               <div style={{ flex: 1.4, minWidth: 0, fontSize: 11.5, color: 'var(--muted)' }}>
                 {item.payee_name ?? '—'} · {item.account_name ?? '—'}
               </div>

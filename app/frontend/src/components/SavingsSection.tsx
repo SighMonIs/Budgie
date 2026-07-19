@@ -3,6 +3,7 @@ import { Bill } from '../types';
 import { fmtAUD, sortItems, SortState } from '../utils';
 import SortMenu from './SortMenu';
 import CategoryOrderButton from './CategoryOrderButton';
+import HistoricIcon from './HistoricIcon';
 
 interface Props {
   title?: string;
@@ -77,6 +78,7 @@ export default function SavingsSection({ title = 'Savings', items, total, accent
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</span>
+                      {item.use_average === 1 && <span title="Amount based on payment history" style={{ color: 'var(--muted)', display: 'flex' }}><HistoricIcon /></span>}
                       {item.savings_mode === 'auto' ? (
                         <span style={{ fontSize: 9, fontWeight: 700, color: '#3ecf8e', background: 'rgba(62,207,142,0.13)', padding: '2px 6px', borderRadius: 4, letterSpacing: '0.04em' }}>AUTO</span>
                       ) : (
