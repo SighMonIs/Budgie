@@ -6,10 +6,12 @@ import ConfirmModal from './ConfirmModal';
 import NumberStepper from './NumberStepper';
 import Dropdown from './Dropdown';
 import DayOfMonthPicker from './DayOfMonthPicker';
+import { Category } from './CategoryModal';
 
 interface Props {
   bill?: Bill;
   defaultCategory?: string;
+  categories: Category[];
   onClose: () => void;
   onDone: () => void;
 }
@@ -21,9 +23,9 @@ const label: React.CSSProperties = { fontSize: 10.5, fontWeight: 700, letterSpac
 const inputStyle: React.CSSProperties = { width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none' };
 const selectStyle: React.CSSProperties = { ...inputStyle };
 
-export default function AddBillModal({ bill, defaultCategory, onClose, onDone }: Props) {
-  const [category, setCategory] = useState<'bills' | 'subscriptions' | 'savings'>(
-    bill?.category ?? (defaultCategory as 'bills' | 'subscriptions' | 'savings') ?? 'bills'
+export default function AddBillModal({ bill, defaultCategory, categories, onClose, onDone }: Props) {
+  const [category, setCategory] = useState<string>(
+    bill?.category ?? defaultCategory ?? categories[0]?.slug ?? ''
   );
   const [name, setName] = useState(bill?.name ?? '');
   const [amountStr, setAmountStr] = useState(bill ? (bill.amount / 100).toFixed(2) : '');
@@ -61,11 +63,9 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
   const intervalNum = parseInt(frequencyInterval, 10) || 1;
   const pfCents = perFortnight(amountCents, frequency, intervalNum);
 
-  const catOptions: { value: 'bills' | 'subscriptions' | 'savings'; label: string }[] = [
-    { value: 'bills', label: 'Bills' },
-    { value: 'subscriptions', label: 'Subscriptions' },
-    { value: 'savings', label: 'Savings' },
-  ];
+  const catOptions = categories.map(c => ({ value: c.slug ?? '', label: c.name }));
+  const selectedCategory = categories.find(c => c.slug === category);
+  const isGoalCategory = selectedCategory?.type === 'credit';
 
   async function handleSave() {
     setSaving(true);
@@ -121,7 +121,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
             <div style={label}>CATEGORY</div>
             <Dropdown
               value={category}
-              onChange={v => setCategory(v as 'bills' | 'subscriptions' | 'savings')}
+              onChange={setCategory}
               options={catOptions}
             />
           </div>
@@ -191,9 +191,9 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
         {/* Due Day / Contribution Date */}
         <div>
           <div style={label}>
-            {category === 'savings' ? 'CONTRIBUTION DATE' : 'DUE DAY OF MONTH'}
+            {isGoalCategory ? 'CONTRIBUTION DATE' : 'DUE DAY OF MONTH'}
           </div>
-          {category === 'savings' ? (
+          {isGoalCategory ? (
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setDueDay('')} style={{
                 flex: 1, padding: '10px 0', borderRadius: 9, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
@@ -215,7 +215,7 @@ export default function AddBillModal({ bill, defaultCategory, onClose, onDone }:
         </div>
 
         {/* Savings target */}
-        {category === 'savings' && (
+        {isGoalCategory && (
           <div>
             <div style={label}>TARGET AMOUNT</div>
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px' }}>

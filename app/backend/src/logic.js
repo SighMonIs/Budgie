@@ -24,12 +24,12 @@ export function thirdPaydayMonths(nextPaydayISO, count = 6) {
   return results;
 }
 
-// Compute dashboard totals from an array of bills rows
+// Compute per-fortnight totals from an array of bill rows, keyed by category slug
 export function computeTotals(bills) {
-  const totals = { bills: 0, subscriptions: 0, savings: 0 };
+  const totals = {};
   for (const b of bills) {
     const pf = perFortnight(b.amount, b.frequency, b.frequency_interval);
-    if (b.category in totals) totals[b.category] += pf;
+    totals[b.category] = (totals[b.category] ?? 0) + pf;
   }
   return totals;
 }

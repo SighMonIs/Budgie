@@ -5,10 +5,9 @@ import { getPaydaysInMonth, getDueDates } from '../utils';
 interface Props {
   nextPayday: string;
   bills: Bill[];
-  subscriptions: Bill[];
 }
 
-export default function CalendarCard({ nextPayday, bills, subscriptions }: Props) {
+export default function CalendarCard({ nextPayday, bills }: Props) {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
@@ -21,7 +20,7 @@ export default function CalendarCard({ nextPayday, bills, subscriptions }: Props
   const offset = (firstDay + 6) % 7;
 
   const paydays = new Set(getPaydaysInMonth(nextPayday, year, month));
-  const dueDays = new Set(getDueDates([...bills, ...subscriptions], year, month));
+  const dueDays = new Set(getDueDates(bills, year, month));
 
   const cells: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   while (cells.length % 7 !== 0) cells.push(null);

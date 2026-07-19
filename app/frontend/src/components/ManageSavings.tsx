@@ -122,6 +122,7 @@ export default function ManageSavings({ savings, onRefresh }: Props) {
       {modal.open && (
         <AddBillModal
           bill={modal.bill ?? ({ category: 'savings' } as Bill)}
+          categories={[]}
           onClose={() => setModal({ open: false })}
           onDone={() => { setModal({ open: false }); onRefresh(); }}
         />

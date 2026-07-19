@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function PayHeader({ totals, nextPayday, frequency, pendingPay, editMode, onSaved, categories }: Props) {
-  const { pay, bills, subscriptions, savings, leftover } = totals;
+  const { pay, leftover } = totals;
 
   // Draft state for inline editing
   const [draftPay, setDraftPay]   = useState(String(pay / 100));
@@ -48,12 +48,11 @@ export default function PayHeader({ totals, nextPayday, frequency, pendingPay, e
   const displayPay  = editMode ? Math.round(parseFloat(draftPay || '0') * 100) : pay;
   const displayFreq = editMode ? draftFreq : frequency;
 
-  const totalsMap: Record<string, number> = { bills, subscriptions, savings };
   const catStats = categories.map(c => ({
     label: c.name,
-    value: totalsMap[c.slug ?? ''] ?? 0,
+    value: totals[c.slug ?? ''] ?? 0,
     color: c.color,
-    pct:   (totalsMap[c.slug ?? ''] ?? 0) / pay * 100,
+    pct:   (totals[c.slug ?? ''] ?? 0) / pay * 100,
   }));
 
   // Build donut gradient from categories + leftover

@@ -68,6 +68,12 @@ export default function App() {
     </div>
   );
 
+  const allBills = Object.values(data.itemsByCategory).flat();
+  const debitSlugs = new Set(categories.filter(c => c.type !== 'credit').map(c => c.slug));
+  const creditSlugs = new Set(categories.filter(c => c.type === 'credit').map(c => c.slug));
+  const debitBills = allBills.filter(b => debitSlugs.has(b.category));
+  const creditBills = allBills.filter(b => creditSlugs.has(b.category));
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '32px 28px', display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: 1022 }}>
@@ -107,19 +113,19 @@ export default function App() {
                   onContribute:   async (id: number) => { await fetch(`/api/bills/${id}/contribute`, { method: 'POST' }); load(); },
                   isFirst, isLast,
                 };
-                if (cat.slug === 'savings') {
+                const items = data.itemsByCategory[cat.slug ?? ''] ?? [];
+                const total = data.totals[cat.slug ?? ''] ?? 0;
+                if (cat.type === 'credit') {
                   return (
                     <SavingsSection key={cat.id}
                       title={cat.name}
                       accentColor={cat.color}
-                      items={data.savings}
-                      total={data.totals.savings}
+                      items={items}
+                      total={total}
                       {...commonProps}
                     />
                   );
                 }
-                const items = cat.slug === 'bills' ? data.bills : cat.slug === 'subscriptions' ? data.subscriptions : [];
-                const total = cat.slug === 'bills' ? data.totals.bills : cat.slug === 'subscriptions' ? data.totals.subscriptions : 0;
                 return (
                   <BillsSection key={cat.id}
                     title={cat.name}
@@ -220,15 +226,13 @@ export default function App() {
             }}>🏦 Accounts & Payees</button>
 
             <BillHistoryCard
-              bills={data.bills}
-              subscriptions={data.subscriptions}
+              bills={allBills}
               onLogged={load}
             />
 
             <CalendarCard
               nextPayday={data.nextPayday}
-              bills={data.bills}
-              subscriptions={data.subscriptions}
+              bills={debitBills}
             />
 
             {data.nextThirdPay && (
@@ -239,7 +243,7 @@ export default function App() {
             )}
 
             <SavingsChecklist
-              items={data.savings}
+              items={creditBills}
               nextPayday={data.nextPayday}
               onContribute={async (id) => { await fetch(`/api/bills/${id}/contribute`, { method: 'POST' }); load(); }}
             />
@@ -260,6 +264,7 @@ export default function App() {
         <AddBillModal
           bill={billModal.bill}
           defaultCategory={billModal.defaultCategory}
+          categories={categories}
           onClose={() => setBillModal({ open: false })}
           onDone={() => { setBillModal({ open: false }); load(); }}
         />

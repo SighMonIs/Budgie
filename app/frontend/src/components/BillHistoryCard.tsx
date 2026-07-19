@@ -4,7 +4,6 @@ import { createBillPayment } from '../api';
 
 interface Props {
   bills: Bill[];
-  subscriptions: Bill[];
   onLogged: () => void;
 }
 
@@ -13,8 +12,8 @@ const inputStyle: React.CSSProperties = {
   padding: '8px 10px', color: 'var(--text)', fontSize: 12.5, outline: 'none',
 };
 
-export default function BillHistoryCard({ bills, subscriptions, onLogged }: Props) {
-  const items = [...bills, ...subscriptions].filter(b => b.use_average === 1);
+export default function BillHistoryCard({ bills, onLogged }: Props) {
+  const items = bills.filter(b => b.use_average === 1);
   const [billId, setBillId] = useState('');
   const [amountStr, setAmountStr] = useState('');
   const [dateStr, setDateStr] = useState(() => new Date().toISOString().slice(0, 10));

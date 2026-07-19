@@ -12,7 +12,7 @@ export interface Settings {
 
 export interface Bill {
   id: number;
-  category: 'bills' | 'subscriptions' | 'savings';
+  category: string;
   name: string;
   amount: number;
   frequency: string;
@@ -38,11 +38,9 @@ export interface Bill {
 }
 
 export interface Totals {
-  bills: number;
-  subscriptions: number;
-  savings: number;
   leftover: number;
   pay: number;
+  [categorySlug: string]: number;
 }
 
 export interface FundAdjustment {
@@ -57,9 +55,7 @@ export interface FundAdjustment {
 export interface DashboardData {
   settings: Settings;
   totals: Totals;
-  bills: Bill[];
-  subscriptions: Bill[];
-  savings: Bill[];
+  itemsByCategory: Record<string, Bill[]>;
   adjustments: FundAdjustment[];
   nextPayday: string;
   nextThirdPay: string | null;

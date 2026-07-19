@@ -7,6 +7,7 @@ const router = Router();
 router.get('/', (req, res) => {
   const db = getDb();
   const settings = db.prepare('SELECT * FROM settings WHERE id = 1').get();
+  const categories = db.prepare('SELECT * FROM categories ORDER BY sort_order, id').all();
   const rawBills = db.prepare(`
     SELECT b.*, a.name as account_name, p.name as payee_name, p.bsb as payee_bsb, p.number as payee_number, p.reference as payee_reference
     FROM bills b
@@ -24,10 +25,11 @@ router.get('/', (req, res) => {
     return b;
   });
 
-  // Auto-contribute savings goals when payday arrives
+  // Auto-contribute goal-style (credit-type category) bills when payday arrives
+  const creditSlugs = new Set(categories.filter(c => c.type === 'credit').map(c => c.slug));
   const today = new Date().toISOString().slice(0, 10);
   if (today >= settings.next_payday) {
-    const autoGoals = rawBills.filter(b => b.category === 'savings' && b.savings_mode === 'auto');
+    const autoGoals = rawBills.filter(b => creditSlugs.has(b.category) && b.savings_mode === 'auto');
     for (const g of autoGoals) {
       if (!g.last_contributed_at || g.last_contributed_at < settings.next_payday) {
         db.prepare('UPDATE bills SET goal_saved = COALESCE(goal_saved, 0) + ?, last_contributed_at = ? WHERE id=?')
@@ -42,42 +44,29 @@ router.get('/', (req, res) => {
     return a.kind === 'add' ? acc + a.amount : acc - a.amount;
   }, 0);
 
-  const leftover = settings.pay_amount - totals.bills - totals.subscriptions - totals.savings + adjDelta;
+  const totalOut = Object.values(totals).reduce((sum, v) => sum + v, 0);
+  const leftover = settings.pay_amount - totalOut + adjDelta;
 
-  const billRows = bills.filter(b => b.category === 'bills').map(b => ({
-    ...b,
-    perFortnight: perFortnight(b.amount, b.frequency, b.frequency_interval),
-  }));
-  const subRows = bills.filter(b => b.category === 'subscriptions').map(b => ({
-    ...b,
-    perFortnight: perFortnight(b.amount, b.frequency, b.frequency_interval),
-  }));
-  const savingsRows = bills.filter(b => b.category === 'savings').map(b => ({
-    ...b,
-    perFortnight: perFortnight(b.amount, b.frequency, b.frequency_interval),
-  }));
+  // Group bills by category slug — bill-driven so nothing silently disappears,
+  // even if a bill's category doesn't (or no longer) match a known category row
+  const itemsByCategory = {};
+  for (const b of bills) {
+    const withPf = { ...b, perFortnight: perFortnight(b.amount, b.frequency, b.frequency_interval) };
+    (itemsByCategory[b.category] ??= []).push(withPf);
+  }
 
   // Calendar: payday dates + due dates for this month
-  const nextPayday = new Date(settings.next_payday);
   const thirdPays = thirdPaydayMonths(settings.next_payday, 3);
   const nextThirdPay = thirdPays[0] || null;
 
   res.json({
     settings,
-    totals: {
-      bills: totals.bills,
-      subscriptions: totals.subscriptions,
-      savings: totals.savings,
-      leftover,
-      pay: settings.pay_amount,
-    },
+    totals: { ...totals, leftover, pay: settings.pay_amount },
     pendingPay: settings.pending_pay_amount ? {
       amount: settings.pending_pay_amount,
       effectiveDate: settings.pending_pay_date,
     } : null,
-    bills: billRows,
-    subscriptions: subRows,
-    savings: savingsRows,
+    itemsByCategory,
     adjustments,
     nextPayday: settings.next_payday,
     nextThirdPay: nextThirdPay ? nextThirdPay.toISOString().slice(0, 10) : null,
