@@ -34,12 +34,14 @@ export default function SortMenu({ value, onChange, color }: Props) {
         title="Sort items"
         aria-label="Sort items"
         style={{
-          background: 'transparent', border: 'none', cursor: 'pointer',
-          color: open ? color : 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: 4, borderRadius: 6,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, fontWeight: 700, color,
+          background: `${color}1a`, borderRadius: 6,
+          padding: '4px 7px', letterSpacing: '0.02em',
+          border: 'none', cursor: 'pointer',
         }}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
@@ -49,7 +51,7 @@ export default function SortMenu({ value, onChange, color }: Props) {
         <>
           <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
           <div style={{
-            position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: 6,
+            position: 'absolute', top: '100%', left: 0, marginTop: 6,
             background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 12,
             padding: 6, minWidth: 150, boxShadow: '0 12px 28px rgba(0,0,0,0.35)', zIndex: 41,
           }}>

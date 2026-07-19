@@ -49,9 +49,8 @@ export default function BillsSection({ title, accentColor, items, total, editMod
           background: `${accentColor}1a`, borderRadius: 6,
           padding: '2px 8px', letterSpacing: '0.02em',
         }}>{items.length}</div>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <SortMenu value={sort} onChange={setSort} color={accentColor} />
-        </div>
+        <SortMenu value={sort} onChange={setSort} color={accentColor} />
+        <div style={{ flex: 1 }} />
         <div className="sg" style={{ fontWeight: 700, fontSize: 17, color: accentColor }}>{fmtAUD(total)}/fn</div>
       </div>
 

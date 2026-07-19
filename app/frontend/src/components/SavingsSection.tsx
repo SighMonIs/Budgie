@@ -51,9 +51,8 @@ export default function SavingsSection({ title = 'Savings', items, total, accent
           background: `${COLOR}1a`, borderRadius: 6,
           padding: '2px 8px', letterSpacing: '0.02em',
         }}>{items.length}</div>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <SortMenu value={sort} onChange={setSort} color={COLOR} />
-        </div>
+        <SortMenu value={sort} onChange={setSort} color={COLOR} />
+        <div style={{ flex: 1 }} />
         <div className="sg" style={{ fontWeight: 700, fontSize: 17, color: COLOR }}>{fmtAUD(total)}/fn</div>
       </div>
 
