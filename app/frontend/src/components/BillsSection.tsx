@@ -105,7 +105,7 @@ export default function BillsSection({ title, accentColor, items, total, editMod
               background: 'transparent', border: `1px dashed ${accentColor}60`,
               color: accentColor, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
               letterSpacing: '0.02em',
-            }}>+ Add {title.slice(0, -1)}</button>
+            }}>+ Add to {title}</button>
           </div>
         )}
       </div>
