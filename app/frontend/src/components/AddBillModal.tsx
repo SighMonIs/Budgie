@@ -117,7 +117,7 @@ export default function AddBillModal({ bill, defaultCategory, categories, onClos
             <div style={label}>NAME</div>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Rent" style={inputStyle} />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={label}>CATEGORY</div>
             <Dropdown
               value={category}
