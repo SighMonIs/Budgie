@@ -6,6 +6,7 @@ import ConfirmModal from './ConfirmModal';
 import NumberStepper from './NumberStepper';
 import Dropdown from './Dropdown';
 import DayOfMonthPicker from './DayOfMonthPicker';
+import FloatingLabelInput from './FloatingLabelInput';
 import { Category } from './CategoryModal';
 
 interface Props {
@@ -114,8 +115,7 @@ export default function AddBillModal({ bill, defaultCategory, categories, onClos
         {/* Name + Category */}
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 2 }}>
-            <div style={label}>NAME</div>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Rent" style={inputStyle} />
+            <FloatingLabelInput value={name} onChange={setName} label="Name" placeholder="Rent" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={label}>CATEGORY</div>
@@ -261,11 +261,7 @@ export default function AddBillModal({ bill, defaultCategory, categories, onClos
         </div>
 
         {/* Notes */}
-        <div>
-          <div style={label}>NOTES</div>
-          <input value={notes} onChange={e => setNotes(e.target.value)}
-            placeholder="e.g. lease ends Dec 2026" style={inputStyle} />
-        </div>
+        <FloatingLabelInput value={notes} onChange={setNotes} label="Notes" placeholder="e.g. lease ends Dec 2026" />
 
         {/* Footer */}
         <div style={{ display: 'flex', gap: 10 }}>
