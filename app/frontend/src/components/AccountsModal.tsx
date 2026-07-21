@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Account, Payee } from '../types';
 import ConfirmModal from './ConfirmModal';
-import FloatingLabelInput from './FloatingLabelInput';
 
 interface Props {
   onClose: () => void;
 }
 
 type Tab = 'accounts' | 'payees';
+
+const inputStyle: React.CSSProperties = {
+  flex: 1, background: 'var(--surface2)', border: '1px solid var(--line)',
+  borderRadius: 9, padding: '9px 12px', color: 'var(--text)', fontSize: 13,
+  outline: 'none', minWidth: 0,
+};
 
 function AccountRow({ account, onSaved, onDelete }: { account: Account; onSaved: () => void; onDelete: () => void }) {
   const [editing, setEditing] = useState(false);
@@ -24,10 +29,10 @@ function AccountRow({ account, onSaved, onDelete }: { account: Account; onSaved:
 
   if (editing) return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 0', borderTop: '1px solid var(--line)' }}>
-      <FloatingLabelInput value={name} onChange={setName} label="Account name" />
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="Account name" style={inputStyle} />
       <div style={{ display: 'flex', gap: 8 }}>
-        <FloatingLabelInput value={bsb} onChange={setBsb} label="BSB" style={{ flex: 1 }} />
-        <FloatingLabelInput value={number} onChange={setNumber} label="Account number" style={{ flex: 1 }} />
+        <input value={bsb} onChange={e => setBsb(e.target.value)} placeholder="BSB" style={inputStyle} />
+        <input value={number} onChange={e => setNumber(e.target.value)} placeholder="Account number" style={inputStyle} />
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         <button onClick={onDelete} style={{ padding: '8px 14px', borderRadius: 8, background: 'transparent', border: '1px solid #ff6b5e', color: '#ff6b5e', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
@@ -68,12 +73,12 @@ function PayeeRow({ payee, onSaved, onDelete }: { payee: Payee; onSaved: () => v
 
   if (editing) return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 0', borderTop: '1px solid var(--line)' }}>
-      <FloatingLabelInput value={name} onChange={setName} label="Payee name" />
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="Payee name" style={inputStyle} />
       <div style={{ display: 'flex', gap: 8 }}>
-        <FloatingLabelInput value={bsb} onChange={setBsb} label="BSB" style={{ flex: 1 }} />
-        <FloatingLabelInput value={number} onChange={setNumber} label="Account number" style={{ flex: 1 }} />
+        <input value={bsb} onChange={e => setBsb(e.target.value)} placeholder="BSB" style={inputStyle} />
+        <input value={number} onChange={e => setNumber(e.target.value)} placeholder="Account number" style={inputStyle} />
       </div>
-      <FloatingLabelInput value={reference} onChange={setReference} label="Payment reference" />
+      <input value={reference} onChange={e => setReference(e.target.value)} placeholder="Payment reference" style={inputStyle} />
       <div style={{ display: 'flex', gap: 8 }}>
         <button onClick={onDelete} style={{ padding: '8px 14px', borderRadius: 8, background: 'transparent', border: '1px solid #ff6b5e', color: '#ff6b5e', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
         <button onClick={() => setEditing(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, background: 'transparent', border: '1px solid var(--line)', color: 'var(--muted)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
@@ -191,10 +196,10 @@ export default function AccountsModal({ onClose }: Props) {
               )}
               {addingAccount ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12, borderTop: '1px solid var(--line)', marginTop: accounts.length ? 0 : 8 }}>
-                  <FloatingLabelInput value={newAccName} onChange={setNewAccName} label="Account name" autoFocus />
+                  <input value={newAccName} onChange={e => setNewAccName(e.target.value)} placeholder="Account name" style={inputStyle} autoFocus />
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <FloatingLabelInput value={newAccBsb} onChange={setNewAccBsb} label="BSB (optional)" style={{ flex: 1 }} />
-                    <FloatingLabelInput value={newAccNumber} onChange={setNewAccNumber} label="Number (optional)" style={{ flex: 1 }} />
+                    <input value={newAccBsb} onChange={e => setNewAccBsb(e.target.value)} placeholder="BSB (optional)" style={inputStyle} />
+                    <input value={newAccNumber} onChange={e => setNewAccNumber(e.target.value)} placeholder="Number (optional)" style={inputStyle} />
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => setAddingAccount(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, background: 'transparent', border: '1px solid var(--line)', color: 'var(--muted)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
@@ -218,12 +223,12 @@ export default function AccountsModal({ onClose }: Props) {
               )}
               {addingPayee ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12, borderTop: '1px solid var(--line)', marginTop: payees.length ? 0 : 8 }}>
-                  <FloatingLabelInput value={newPayeeName} onChange={setNewPayeeName} label="Payee name" autoFocus />
+                  <input value={newPayeeName} onChange={e => setNewPayeeName(e.target.value)} placeholder="Payee name" style={inputStyle} autoFocus />
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <FloatingLabelInput value={newPayeeBsb} onChange={setNewPayeeBsb} label="BSB (optional)" style={{ flex: 1 }} />
-                    <FloatingLabelInput value={newPayeeNumber} onChange={setNewPayeeNumber} label="Account number (optional)" style={{ flex: 1 }} />
+                    <input value={newPayeeBsb} onChange={e => setNewPayeeBsb(e.target.value)} placeholder="BSB (optional)" style={inputStyle} />
+                    <input value={newPayeeNumber} onChange={e => setNewPayeeNumber(e.target.value)} placeholder="Account number (optional)" style={inputStyle} />
                   </div>
-                  <FloatingLabelInput value={newPayeeRef} onChange={setNewPayeeRef} label="Payment reference (optional)" />
+                  <input value={newPayeeRef} onChange={e => setNewPayeeRef(e.target.value)} placeholder="Payment reference (optional)" style={inputStyle} />
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => setAddingPayee(false)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, background: 'transparent', border: '1px solid var(--line)', color: 'var(--muted)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
                     <button onClick={addPayee} disabled={!newPayeeName.trim()} style={{ flex: 2, padding: '8px 0', borderRadius: 8, background: newPayeeName.trim() ? 'var(--accent)' : 'var(--surface2)', color: newPayeeName.trim() ? '#fff' : 'var(--muted)', border: 'none', fontSize: 12.5, fontWeight: 600, cursor: newPayeeName.trim() ? 'pointer' : 'default' }}>Add payee</button>

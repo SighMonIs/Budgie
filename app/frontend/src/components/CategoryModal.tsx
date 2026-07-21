@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import FloatingLabelInput from './FloatingLabelInput';
 
 export interface Category {
   id?: number;
@@ -81,11 +80,21 @@ export default function CategoryModal({ category, onClose, onDone }: Props) {
         </div>
 
         {/* Name */}
-        <FloatingLabelInput
-          value={name}
-          onChange={setName}
-          label="Category Name"
-        />
+        <div>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>
+            NAME
+          </div>
+          <input
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder={type === 'debit' ? 'e.g. Bills' : 'e.g. Savings'}
+            style={{
+              width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)',
+              borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 14,
+              outline: 'none', fontFamily: 'inherit',
+            }}
+          />
+        </div>
 
         {/* Colour */}
         <div>

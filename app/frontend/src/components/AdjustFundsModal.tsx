@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Totals } from '../types';
 import { fmtAUD } from '../utils';
 import { createFundAdjustment } from '../api';
-import FloatingLabelInput from './FloatingLabelInput';
 
 interface Props {
   totals: Totals;
@@ -102,12 +101,19 @@ export default function AdjustFundsModal({ totals, initialTab = 'add', onClose, 
         </div>
 
         {/* Purpose */}
-        <FloatingLabelInput
-          value={purpose}
-          onChange={setPurpose}
-          label="What's it for?"
-          placeholder="Freelance design — weekend job"
-        />
+        <div>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>WHAT'S IT FOR?</div>
+          <input
+            value={purpose}
+            onChange={e => setPurpose(e.target.value)}
+            placeholder="Freelance design — weekend job"
+            style={{
+              width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)',
+              borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 13,
+              outline: 'none',
+            }}
+          />
+        </div>
 
         {/* Destination */}
         <div>
