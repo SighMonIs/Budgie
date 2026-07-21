@@ -21,6 +21,8 @@ const FREQUENCIES = ['daily', 'weekly', 'monthly'];
 const FREQ_LABELS: Record<string, string> = { daily: 'Days', weekly: 'Weeks', monthly: 'Months' };
 
 const label: React.CSSProperties = { fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 };
+const inputStyle: React.CSSProperties = { width: '100%', background: 'var(--surface2)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none' };
+const selectStyle: React.CSSProperties = { ...inputStyle };
 
 export default function AddBillModal({ bill, defaultCategory, categories, onClose, onDone }: Props) {
   const [category, setCategory] = useState<string>(
@@ -116,11 +118,11 @@ export default function AddBillModal({ bill, defaultCategory, categories, onClos
             <FloatingLabelInput value={name} onChange={setName} label="Name" placeholder="Rent" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={label}>CATEGORY</div>
             <Dropdown
               value={category}
               onChange={setCategory}
               options={catOptions}
-              label="Category"
             />
           </div>
         </div>
@@ -178,12 +180,10 @@ export default function AddBillModal({ bill, defaultCategory, categories, onClos
                 align="center"
                 style={{ width: 76, flexShrink: 0 }}
               />
-              <Dropdown
-                value={frequency}
-                onChange={setFrequency}
-                options={FREQUENCIES.map(f => ({ value: f, label: FREQ_LABELS[f] }))}
-                style={{ flex: 1 }}
-              />
+              <select value={frequency} onChange={e => setFrequency(e.target.value)}
+                style={{ flex: 1, minWidth: 0, ...selectStyle }}>
+                {FREQUENCIES.map(f => <option key={f} value={f}>{FREQ_LABELS[f]}</option>)}
+              </select>
             </div>
           </div>
         </div>
@@ -230,12 +230,11 @@ export default function AddBillModal({ bill, defaultCategory, categories, onClos
 
         {/* Payment method */}
         <div>
-          <Dropdown
-            value={method}
-            onChange={v => setMethod(v as 'auto' | 'manual')}
-            options={[{ value: 'auto', label: 'Automatic' }, { value: 'manual', label: 'Manual' }]}
-            label="Payment Method"
-          />
+          <div style={label}>PAYMENT METHOD</div>
+          <select value={method} onChange={e => setMethod(e.target.value as 'auto' | 'manual')} style={selectStyle}>
+            <option value="auto">Automatic</option>
+            <option value="manual">Manual</option>
+          </select>
           <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
             {method === 'auto'
               ? 'Paid automatically by your bank — Budgie just reserves it.'
@@ -245,21 +244,19 @@ export default function AddBillModal({ bill, defaultCategory, categories, onClos
 
         {/* Paid From + Paid To */}
         <div style={{ display: 'flex', gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <Dropdown
-              value={accountId}
-              onChange={setAccountId}
-              options={[{ value: '', label: 'Select account' }, ...accounts.map(a => ({ value: String(a.id), label: a.name }))]}
-              label="Paid From"
-            />
+          <div style={{ flex: 1 }}>
+            <div style={label}>PAID FROM</div>
+            <select value={accountId} onChange={e => setAccountId(e.target.value)} style={selectStyle}>
+              <option value="">Select account</option>
+              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <Dropdown
-              value={payeeId}
-              onChange={setPayeeId}
-              options={[{ value: '', label: 'Select payee' }, ...payees.map(p => ({ value: String(p.id), label: p.name }))]}
-              label="Paid To"
-            />
+          <div style={{ flex: 1 }}>
+            <div style={label}>PAID TO</div>
+            <select value={payeeId} onChange={e => setPayeeId(e.target.value)} style={selectStyle}>
+              <option value="">Select payee</option>
+              {payees.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
           </div>
         </div>
 

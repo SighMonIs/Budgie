@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Bill } from '../types';
 import { createBillPayment } from '../api';
-import Dropdown from './Dropdown';
 
 interface Props {
   bills: Bill[];
@@ -52,12 +51,10 @@ export default function BillHistoryCard({ bills, onLogged }: Props) {
         </div>
       ) : (
         <>
-          <Dropdown
-            value={billId}
-            onChange={pickBill}
-            options={[{ value: '', label: 'Select a bill' }, ...items.map(b => ({ value: String(b.id), label: b.name }))]}
-            label="Bill"
-          />
+          <select value={billId} onChange={e => pickBill(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
+            <option value="">Select a bill</option>
+            {items.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
 
           <div style={{ display: 'flex', alignItems: 'center', width: '100%', ...inputStyle, padding: '8px 10px' }}>
             <span style={{ color: 'var(--muted)', marginRight: 4 }}>$</span>
