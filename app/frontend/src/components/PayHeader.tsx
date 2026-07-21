@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function PayHeader({ totals, nextPayday, frequency, pendingPay, editMode, onSaved, categories }: Props) {
-  const { pay, leftover } = totals;
+  const { pay } = totals;
 
   // Draft state for inline editing
   const [draftPay, setDraftPay]   = useState(String(pay / 100));
@@ -47,22 +47,6 @@ export default function PayHeader({ totals, nextPayday, frequency, pendingPay, e
 
   const displayPay  = editMode ? Math.round(parseFloat(draftPay || '0') * 100) : pay;
   const displayFreq = editMode ? draftFreq : frequency;
-
-  const catStats = categories.map(c => ({
-    label: c.name,
-    value: totals[c.slug ?? ''] ?? 0,
-    color: c.color,
-    pct:   (totals[c.slug ?? ''] ?? 0) / pay * 100,
-  }));
-
-  // Build donut gradient from categories + leftover
-  let cursor = 0;
-  const donutSegments = catStats.map(s => {
-    const seg = `${s.color} ${cursor}% ${cursor + s.pct}%`;
-    cursor += s.pct;
-    return seg;
-  });
-  const donutBg = `conic-gradient(${[...donutSegments, `rgba(140,143,156,0.28) ${cursor}% 100%`].join(', ')})`;
 
   const fieldStyle: React.CSSProperties = {
     background: 'var(--surface2)', border: '1px solid var(--accent)',
@@ -100,82 +84,62 @@ export default function PayHeader({ totals, nextPayday, frequency, pendingPay, e
       </div>
 
       <div style={{ padding: '20px 26px' }}>
-      <div style={{ display: 'flex', gap: 26, alignItems: 'flex-start' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-
-          {/* Frequency label / pill toggle */}
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--muted)' }}>
-            PAY CYCLE
+        {/* Frequency label / pill toggle */}
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--muted)' }}>
+          PAY CYCLE
+        </div>
+        {editMode ? (
+          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+            {Object.entries(FREQ_LABELS).map(([v, l]) => {
+              const active = draftFreq === v;
+              return (
+                <button key={v} onClick={() => setDraftFreq(v)} style={{
+                  padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                  cursor: 'pointer', letterSpacing: '0.04em',
+                  border: active ? 'none' : '1px solid var(--line)',
+                  background: active ? 'var(--accent)' : 'var(--surface2)',
+                  color: active ? '#fff' : 'var(--muted)',
+                }}>{l}</button>
+              );
+            })}
           </div>
+        ) : (
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--muted)', marginTop: 2 }}>
+            {displayFreq.toUpperCase()}
+          </div>
+        )}
+
+        {/* Pay amount */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginTop: 8 }}>
           {editMode ? (
-            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-              {Object.entries(FREQ_LABELS).map(([v, l]) => {
-                const active = draftFreq === v;
-                return (
-                  <button key={v} onClick={() => setDraftFreq(v)} style={{
-                    padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-                    cursor: 'pointer', letterSpacing: '0.04em',
-                    border: active ? 'none' : '1px solid var(--line)',
-                    background: active ? 'var(--accent)' : 'var(--surface2)',
-                    color: active ? '#fff' : 'var(--muted)',
-                  }}>{l}</button>
-                );
-              })}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span className="sg" style={{ fontWeight: 700, fontSize: 36, color: 'var(--muted)' }}>$</span>
+              <input
+                value={draftPay}
+                onChange={e => setDraftPay(e.target.value.replace(/[^\d.]/g, ''))}
+                style={{ ...fieldStyle, fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 40, lineHeight: 1, width: 180, padding: '2px 10px' }}
+              />
             </div>
           ) : (
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--muted)', marginTop: 2 }}>
-              {displayFreq.toUpperCase()}
+            <div className="sg" style={{ fontWeight: 700, fontSize: 48, lineHeight: 1, letterSpacing: '-0.02em' }}>
+              {fmtAUD(displayPay)}
             </div>
           )}
 
-          {/* Pay amount */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginTop: 8 }}>
+          <div style={{ fontSize: 12.5, color: 'var(--muted)', paddingBottom: editMode ? 6 : 7 }}>
+            next payday<br />
             {editMode ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span className="sg" style={{ fontWeight: 700, fontSize: 36, color: 'var(--muted)' }}>$</span>
-                <input
-                  value={draftPay}
-                  onChange={e => setDraftPay(e.target.value.replace(/[^\d.]/g, ''))}
-                  style={{ ...fieldStyle, fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 40, lineHeight: 1, width: 180, padding: '2px 10px' }}
-                />
-              </div>
+              <input
+                type="date"
+                value={draftDate}
+                onChange={e => setDraftDate(e.target.value)}
+                style={{ ...fieldStyle, fontSize: 12.5, fontWeight: 700, padding: '3px 8px', marginTop: 2 }}
+              />
             ) : (
-              <div className="sg" style={{ fontWeight: 700, fontSize: 48, lineHeight: 1, letterSpacing: '-0.02em' }}>
-                {fmtAUD(displayPay)}
-              </div>
+              <span style={{ color: 'var(--text)', fontWeight: 700 }}>{formatDate(nextPayday)}</span>
             )}
-
-            <div style={{ fontSize: 12.5, color: 'var(--muted)', paddingBottom: editMode ? 6 : 7 }}>
-              next payday<br />
-              {editMode ? (
-                <input
-                  type="date"
-                  value={draftDate}
-                  onChange={e => setDraftDate(e.target.value)}
-                  style={{ ...fieldStyle, fontSize: 12.5, fontWeight: 700, padding: '3px 8px', marginTop: 2 }}
-                />
-              ) : (
-                <span style={{ color: 'var(--text)', fontWeight: 700 }}>{formatDate(nextPayday)}</span>
-              )}
-            </div>
-          </div>
-
-        </div>
-
-        {/* Donut */}
-        <div style={{ position: 'relative', width: 170, height: 170, flexShrink: 0 }}>
-          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: donutBg }} />
-          <div style={{
-            position: 'absolute', inset: 20, borderRadius: '50%',
-            background: 'var(--bg)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--muted)' }}>FREE</div>
-            <div className="sg" style={{ fontSize: 26, fontWeight: 700 }}>{fmtAUD(leftover)}</div>
-            <div style={{ fontSize: 10.5, color: 'var(--muted)' }}>of {fmtAUD(pay)}</div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
