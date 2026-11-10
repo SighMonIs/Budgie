@@ -1,9 +1,9 @@
 import { CategorySlug, Frequency } from './types';
 
-export const CATEGORIES: { slug: CategorySlug; name: string; color: string; noun: string }[] = [
-  { slug: 'bills',         name: 'Bills',         color: '#ff6b5e', noun: 'bill' },
-  { slug: 'subscriptions', name: 'Subscriptions', color: '#54a0ff', noun: 'subscription' },
-  { slug: 'savings',       name: 'Savings',       color: '#feca57', noun: 'savings goal' },
+export const CATEGORIES: { slug: CategorySlug; name: string; color: string }[] = [
+  { slug: 'bills',         name: 'Bills',         color: '#ff6b5e' },
+  { slug: 'subscriptions', name: 'Subscriptions', color: '#54a0ff' },
+  { slug: 'savings',       name: 'Savings',       color: '#feca57' },
 ];
 
 export const FREQUENCIES: { value: Frequency; label: string; days: number }[] = [
@@ -39,16 +39,4 @@ export function ordinal(n: number): string {
     case 3: return `${n}rd`;
     default: return `${n}th`;
   }
-}
-
-export function getPaydaysInMonth(nextPayday: string, year: number, month: number): number[] {
-  const days: number[] = [];
-  // Walk back to the first payday on or before the start of the month, then forward in 14-day steps
-  const start = new Date(nextPayday);
-  while (start.getTime() > new Date(year, month - 1, 1).getTime()) start.setDate(start.getDate() - 14);
-  const limit = new Date(year, month, 1);
-  for (let d = new Date(start); d < limit; d = new Date(d.getTime() + 14 * 86400000)) {
-    if (d.getFullYear() === year && d.getMonth() + 1 === month) days.push(d.getDate());
-  }
-  return days;
 }

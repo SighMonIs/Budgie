@@ -6,7 +6,6 @@ import ConfirmModal from './ConfirmModal';
 
 interface Props {
   bill?: Bill;                    // editing when set, creating otherwise
-  defaultCategory?: CategorySlug;
   onClose: () => void;
   onDone: () => void;
 }
@@ -14,11 +13,11 @@ interface Props {
 const dollars = (cents: number | null | undefined) => (cents ? (cents / 100).toFixed(2) : '');
 const money = (set: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => set(e.target.value.replace(/[^\d.]/g, ''));
 
-export default function BillModal({ bill, defaultCategory = 'bills', onClose, onDone }: Props) {
-  const [category, setCategory] = useState<CategorySlug>(bill?.category ?? defaultCategory);
+export default function BillModal({ bill, onClose, onDone }: Props) {
+  const [category, setCategory] = useState<CategorySlug>(bill?.category ?? 'bills');
   const [name, setName] = useState(bill?.name ?? '');
   const [amount, setAmount] = useState(dollars(bill?.amount));
-  const [frequency, setFrequency] = useState<Frequency>(bill?.frequency ?? (defaultCategory === 'savings' ? 'fortnightly' : 'monthly'));
+  const [frequency, setFrequency] = useState<Frequency>(bill?.frequency ?? 'monthly');
   const [dueDay, setDueDay] = useState(bill?.due_day ? String(bill.due_day) : '');
   const [notes, setNotes] = useState(bill?.notes ?? '');
   const [target, setTarget] = useState(dollars(bill?.goal_target));

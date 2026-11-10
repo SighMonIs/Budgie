@@ -9,9 +9,6 @@ router.get('/', (req, res) => {
   const settings = db.prepare('SELECT pay_amount, next_payday, theme FROM settings WHERE id = 1').get();
   const bills = db.prepare('SELECT * FROM bills ORDER BY id').all()
     .map(b => ({ ...b, perFortnight: perFortnight(b.amount, b.frequency) }));
-  const { adjust } = db.prepare(
-    `SELECT COALESCE(SUM(CASE kind WHEN 'add' THEN amount ELSE -amount END), 0) AS adjust FROM fund_adjustments`
-  ).get();
 
   const setAside = bills.reduce((sum, b) => sum + b.perFortnight, 0);
   res.json({
@@ -19,7 +16,7 @@ router.get('/', (req, res) => {
     nextPayday: settings.next_payday,
     theme: settings.theme,
     setAside,
-    leftover: settings.pay_amount - setAside + adjust,
+    leftover: settings.pay_amount - setAside,
     bills,
   });
 });

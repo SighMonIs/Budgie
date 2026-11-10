@@ -15,5 +15,4 @@ export const fetchDashboard = (): Promise<Dashboard> => send('GET', '/dashboard'
 export const saveBill = (id: number | undefined, bill: Record<string, unknown>) =>
   id ? send('PUT', `/bills/${id}`, bill) : send('POST', '/bills', bill);
 export const deleteBill = (id: number) => send('DELETE', `/bills/${id}`);
-export const createFundAdjustment = (data: { kind: 'add' | 'take'; amount: number; purpose?: string }) => send('POST', '/funds', data);
 export const updateSettings = (data: Record<string, unknown>) => send('PUT', '/settings', data);

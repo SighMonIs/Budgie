@@ -40,14 +40,6 @@ export function migrate(db, today = todayISO()) {
       goal_target INTEGER,            -- savings goals only
       goal_saved  INTEGER
     );
-
-    CREATE TABLE IF NOT EXISTS fund_adjustments (
-      id         INTEGER PRIMARY KEY,
-      kind       TEXT    NOT NULL,
-      amount     INTEGER NOT NULL,
-      purpose    TEXT,
-      created_at TEXT    NOT NULL DEFAULT (datetime('now'))
-    );
   `);
 
   if (!db.prepare('SELECT 1 FROM settings').get()) {

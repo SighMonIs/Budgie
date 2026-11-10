@@ -5,14 +5,13 @@ import { CATEGORIES, fmtAUD, ordinal } from '../utils';
 interface Props {
   cat: typeof CATEGORIES[number];
   bills: Bill[];
-  onAdd: () => void;
   onEdit: (bill: Bill) => void;
 }
 
 const sub: React.CSSProperties = { fontSize: 11.5, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 
-export default function Section({ cat, bills, onAdd, onEdit }: Props) {
-  const { color, name, slug, noun } = cat;
+export default function Section({ cat, bills, onEdit }: Props) {
+  const { color, name, slug } = cat;
   const isGoal = slug === 'savings';
   const total = bills.reduce((sum, b) => sum + b.perFortnight, 0);
 
@@ -66,11 +65,6 @@ export default function Section({ cat, bills, onAdd, onEdit }: Props) {
         {bills.length === 0 && (
           <div style={{ fontSize: 13, color: 'var(--muted)', padding: '12px 0', textAlign: 'center' }}>Nothing here yet</div>
         )}
-
-        <button onClick={onAdd} style={{
-          width: '100%', marginTop: 6, padding: '8px 0', borderRadius: 8, background: 'transparent',
-          border: `1px dashed ${color}60`, color, fontSize: 12.5, fontWeight: 600,
-        }}>+ Add {noun}</button>
       </div>
     </div>
   );

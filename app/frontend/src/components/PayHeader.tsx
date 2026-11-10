@@ -7,10 +7,11 @@ interface Props {
   data: Dashboard;
   onSaved: () => void;
   onToggleTheme: () => void;
+  onAdd: () => void;
 }
 
 // Pay amount and next payday are edited in place: change the field, it saves.
-export default function PayHeader({ data, onSaved, onToggleTheme }: Props) {
+export default function PayHeader({ data, onSaved, onToggleTheme, onAdd }: Props) {
   const [payStr, setPayStr] = useState(String(data.pay / 100));
   useEffect(() => setPayStr(String(data.pay / 100)), [data.pay]);
 
@@ -25,6 +26,7 @@ export default function PayHeader({ data, onSaved, onToggleTheme }: Props) {
       }}>
         <span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--accent)' }} />
         <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', flex: 1 }}>Fortnightly pay</div>
+        <button onClick={onAdd} className="btn primary" style={{ padding: '4px 12px', fontSize: 13 }}>+ Add expense</button>
         <button onClick={onToggleTheme} title="Switch light/dark" className="btn" style={{ padding: '4px 10px', fontSize: 15 }}>
           {data.theme === 'dark' ? '☀' : '☾'}
         </button>

@@ -1,18 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bill, CategorySlug, Dashboard } from './types';
+import { Bill, Dashboard } from './types';
 import { fetchDashboard, updateSettings } from './api';
 import { CATEGORIES } from './utils';
 import PayHeader from './components/PayHeader';
 import Section from './components/Section';
-import CalendarCard from './components/CalendarCard';
 import BillModal from './components/BillModal';
-import AdjustFundsModal from './components/AdjustFundsModal';
 
 export default function App() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState(false);
-  const [billModal, setBillModal] = useState<{ bill?: Bill; category?: CategorySlug } | null>(null);
-  const [fundsTab, setFundsTab] = useState<'add' | 'take' | null>(null);
+  const [billModal, setBillModal] = useState<{ bill?: Bill } | null>(null);
 
   const load = useCallback(() => {
     fetchDashboard().then(d => { setData(d); setError(false); }).catch(() => setError(true));
@@ -43,40 +40,20 @@ export default function App() {
     setData({ ...data, theme });
     updateSettings({ theme });
   };
-  const done = () => { setBillModal(null); setFundsTab(null); load(); };
+  const done = () => { setBillModal(null); load(); };
 
   return (
     <div className="page">
-      <div className="layout">
-        <main className="col" style={{ gap: 18 }}>
-          <PayHeader data={data} onSaved={load} onToggleTheme={toggleTheme} />
-          {CATEGORIES.map(cat => (
-            <Section key={cat.slug} cat={cat}
-              bills={data.bills.filter(b => b.category === cat.slug)}
-              onAdd={() => setBillModal({ category: cat.slug })}
-              onEdit={bill => setBillModal({ bill })} />
-          ))}
-        </main>
+      <main className="col">
+        <PayHeader data={data} onSaved={load} onToggleTheme={toggleTheme} onAdd={() => setBillModal({})} />
+        {CATEGORIES.map(cat => (
+          <Section key={cat.slug} cat={cat}
+            bills={data.bills.filter(b => b.category === cat.slug)}
+            onEdit={bill => setBillModal({ bill })} />
+        ))}
+      </main>
 
-        <aside className="rail">
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>Adjust funds</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn primary" style={{ flex: 1 }} onClick={() => setFundsTab('add')}>+ Add money</button>
-              <button className="btn" style={{ flex: 1, color: 'var(--text)' }} onClick={() => setFundsTab('take')}>− Take out</button>
-            </div>
-            <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>Record side income or one-off withdrawals.</div>
-          </div>
-          <CalendarCard nextPayday={data.nextPayday} bills={data.bills.filter(b => b.category !== 'savings')} />
-        </aside>
-      </div>
-
-      {billModal && (
-        <BillModal bill={billModal.bill} defaultCategory={billModal.category} onClose={() => setBillModal(null)} onDone={done} />
-      )}
-      {fundsTab && (
-        <AdjustFundsModal leftover={data.leftover} initialTab={fundsTab} onClose={() => setFundsTab(null)} onDone={done} />
-      )}
+      {billModal && <BillModal bill={billModal.bill} onClose={() => setBillModal(null)} onDone={done} />}
     </div>
   );
 }

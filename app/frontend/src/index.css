@@ -34,17 +34,10 @@ input, select, textarea { font-family: inherit; }
 
 .sg { font-family: 'Space Grotesk', sans-serif; }
 
-/* Layout: main column + right rail on wide screens, one stacked column on narrow ones */
+/* Layout: one centred column */
 .page { min-height: 100vh; padding: 32px 28px; }
-.layout {
-  display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px;
-  max-width: 1022px; margin: 0 auto; align-items: start;
-}
-.col, .rail { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-@media (max-width: 860px) {
-  .page { padding: 16px 12px; }
-  .layout { grid-template-columns: minmax(0, 1fr); }
-}
+.col { display: flex; flex-direction: column; gap: 18px; max-width: 720px; margin: 0 auto; min-width: 0; }
+@media (max-width: 860px) { .page { padding: 16px 12px; } }
 
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
 
