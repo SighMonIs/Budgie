@@ -1,88 +1,24 @@
-export interface Settings {
-  id: number;
-  currency: string;
-  pay_amount: number;
-  pay_frequency: string;
-  next_payday: string;
-  theme: string;
-  accent: string;
-  pending_pay_amount: number | null;
-  pending_pay_date: string | null;
-}
+export type CategorySlug = 'bills' | 'subscriptions' | 'savings';
+export type Frequency = 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'yearly';
 
 export interface Bill {
   id: number;
-  category: string;
+  category: CategorySlug;
   name: string;
-  amount: number;
-  frequency: string;
-  frequency_interval: number;
+  amount: number;            // cents, per `frequency`
+  frequency: Frequency;
   due_day: number | null;
-  due_date: string | null;
-  account_id: number | null;
-  payee_id: number | null;
-  method: 'auto' | 'manual';
   notes: string | null;
-  goal_target: number | null;
+  goal_target: number | null; // savings goals only
   goal_saved: number | null;
-  goal_deadline: string | null;
   perFortnight: number;
-  account_name: string | null;
-  payee_name: string | null;
-  payee_bsb: string | null;
-  payee_number: string | null;
-  payee_reference: string | null;
-  use_average: number;
-  savings_mode: 'manual' | 'auto';
-  last_contributed_at: string | null;
 }
 
-export interface Totals {
-  leftover: number;
+export interface Dashboard {
   pay: number;
-  [categorySlug: string]: number;
-}
-
-export interface FundAdjustment {
-  id: number;
-  kind: 'add' | 'take';
-  amount: number;
-  purpose: string | null;
-  destination: string | null;
-  created_at: string;
-}
-
-export interface DashboardData {
-  settings: Settings;
-  totals: Totals;
-  itemsByCategory: Record<string, Bill[]>;
-  adjustments: FundAdjustment[];
   nextPayday: string;
-  nextThirdPay: string | null;
-  pendingPay: { amount: number; effectiveDate: string } | null;
-}
-
-export interface Account {
-  id: number;
-  name: string;
-  bsb: string | null;
-  number: string | null;
-}
-
-export interface Payee {
-  id: number;
-  name: string;
-  bsb: string | null;
-  number: string | null;
-  reference: string | null;
-}
-
-export interface BillPayment {
-  id: number;
-  bill_id: number;
-  amount: number;
-  paid_date: string | null;
-  note: string | null;
-  created_at: string;
-  bill_name?: string;
+  theme: 'dark' | 'light';
+  setAside: number;
+  leftover: number;
+  bills: Bill[];
 }

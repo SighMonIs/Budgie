@@ -2,175 +2,128 @@ import { DatabaseSync } from 'node:sqlite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { addDays, perFortnight, todayISO } from './logic.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/budgie.sqlite');
-
-// Ensure data directory exists
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 let db;
 
 export function getDb() {
   if (!db) {
+    fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
     db = new DatabaseSync(DB_PATH);
     migrate(db);
   }
   return db;
 }
 
-function migrate(db) {
+export function migrate(db, today = todayISO()) {
   db.exec(`
     PRAGMA journal_mode = WAL;
-    PRAGMA foreign_keys = ON;
 
     CREATE TABLE IF NOT EXISTS settings (
-      id            INTEGER PRIMARY KEY CHECK (id = 1),
-      currency      TEXT    NOT NULL DEFAULT 'AUD',
-      pay_amount    INTEGER NOT NULL DEFAULT 318000,
-      pay_frequency TEXT    NOT NULL DEFAULT 'fortnightly',
-      next_payday   TEXT    NOT NULL DEFAULT '2026-06-25',
-      theme                TEXT    NOT NULL DEFAULT 'dark',
-      accent               TEXT    NOT NULL DEFAULT '#7c6cf0',
-      pending_pay_amount   INTEGER,
-      pending_pay_date     TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS accounts (
-      id     INTEGER PRIMARY KEY,
-      name   TEXT NOT NULL,
-      bsb    TEXT,
-      number TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS payees (
-      id        INTEGER PRIMARY KEY,
-      name      TEXT NOT NULL,
-      bsb       TEXT,
-      number    TEXT,
-      reference TEXT
+      id          INTEGER PRIMARY KEY CHECK (id = 1),
+      pay_amount  INTEGER NOT NULL DEFAULT 0,
+      next_payday TEXT    NOT NULL,
+      theme       TEXT    NOT NULL DEFAULT 'dark'
     );
 
     CREATE TABLE IF NOT EXISTS bills (
       id          INTEGER PRIMARY KEY,
-      category    TEXT    NOT NULL,
+      category    TEXT    NOT NULL,   -- 'bills' | 'subscriptions' | 'savings'
       name        TEXT    NOT NULL,
-      amount      INTEGER NOT NULL,
+      amount      INTEGER NOT NULL,   -- cents, per \`frequency\`
       frequency   TEXT    NOT NULL DEFAULT 'monthly',
       due_day     INTEGER,
-      due_date    TEXT,
-      account_id  INTEGER REFERENCES accounts(id),
-      payee_id    INTEGER REFERENCES payees(id),
-      method      TEXT    NOT NULL DEFAULT 'auto',
       notes       TEXT,
-      goal_target INTEGER,
-      goal_saved  INTEGER,
-      goal_deadline TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS categories (
-      id    INTEGER PRIMARY KEY,
-      slug  TEXT UNIQUE,
-      name  TEXT NOT NULL,
-      color TEXT NOT NULL,
-      type  TEXT NOT NULL DEFAULT 'debit'   -- 'debit' | 'credit'
+      goal_target INTEGER,            -- savings goals only
+      goal_saved  INTEGER
     );
 
     CREATE TABLE IF NOT EXISTS fund_adjustments (
-      id          INTEGER PRIMARY KEY,
-      kind        TEXT    NOT NULL,
-      amount      INTEGER NOT NULL,
-      purpose     TEXT,
-      destination TEXT,
-      created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS bill_payments (
       id         INTEGER PRIMARY KEY,
-      bill_id    INTEGER NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
+      kind       TEXT    NOT NULL,
       amount     INTEGER NOT NULL,
-      paid_date  TEXT,
-      note       TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      purpose    TEXT,
+      created_at TEXT    NOT NULL DEFAULT (datetime('now'))
     );
   `);
 
-  // Add new columns to existing databases gracefully
-  try { db.exec(`ALTER TABLE settings ADD COLUMN pending_pay_amount INTEGER`); } catch {}
-  try { db.exec(`ALTER TABLE settings ADD COLUMN pending_pay_date TEXT`); } catch {}
-  try { db.exec(`ALTER TABLE categories ADD COLUMN slug TEXT`); } catch {}
-  try { db.exec(`ALTER TABLE bills ADD COLUMN use_average INTEGER NOT NULL DEFAULT 0`); } catch {}
-  try { db.exec(`ALTER TABLE categories ADD COLUMN sort_order INTEGER`); } catch {}
-  try { db.exec(`ALTER TABLE bills ADD COLUMN sort_order INTEGER`); } catch {}
-  try { db.exec(`ALTER TABLE bills ADD COLUMN savings_mode TEXT NOT NULL DEFAULT 'manual'`); } catch {}
-  try { db.exec(`ALTER TABLE bills ADD COLUMN last_contributed_at TEXT`); } catch {}
-  try { db.exec(`ALTER TABLE bills ADD COLUMN frequency_interval INTEGER NOT NULL DEFAULT 1`); } catch {}
-  db.exec(`UPDATE categories SET sort_order = id WHERE sort_order IS NULL`);
-  db.exec(`UPDATE bills SET sort_order = id WHERE sort_order IS NULL`);
+  if (!db.prepare('SELECT 1 FROM settings').get()) {
+    db.prepare('INSERT INTO settings (id, next_payday) VALUES (1, ?)').run(addDays(today, 14));
+  }
 
-  // Collapse the old fixed frequency enum down to unit + interval (days/weeks/months)
-  db.exec(`UPDATE bills SET frequency = 'weekly',  frequency_interval = 2 WHERE frequency = 'fortnightly'`);
-  db.exec(`UPDATE bills SET frequency = 'monthly', frequency_interval = 1 WHERE frequency = 'monthly_half'`);
-  db.exec(`UPDATE bills SET frequency = 'monthly', frequency_interval = 3 WHERE frequency = 'quarterly'`);
-  db.exec(`UPDATE bills SET frequency = 'monthly', frequency_interval = 12 WHERE frequency = 'yearly'`);
+  if (db.prepare('PRAGMA user_version').get().user_version < 1) {
+    migrateFromV0(db, today);
+    db.exec('PRAGMA user_version = 1');
+  }
+}
 
-  // Seed categories if empty
-  const catCount = db.prepare('SELECT COUNT(*) as n FROM categories').get();
-  if (catCount.n === 0) {
-    const ic = db.prepare('INSERT INTO categories (slug, name, color, type) VALUES (?, ?, ?, ?)');
-    ic.run('bills',         'Bills',         '#ff6b5e', 'debit');
-    ic.run('subscriptions', 'Subscriptions', '#54a0ff', 'debit');
-    ic.run('savings',       'Savings',       '#feca57', 'credit');
-  } else {
-    // Backfill slugs for existing rows that don't have one
-    const update = db.prepare(`UPDATE categories SET slug=? WHERE id=? AND (slug IS NULL OR slug='')`);
-    const existing = db.prepare('SELECT id, name FROM categories').all();
-    for (const row of existing) {
-      const slug = row.name.toLowerCase().replace(/\s+/g, '-');
-      update.run(slug, row.id);
+// One-off upgrade from the old schema (custom categories, payees/accounts,
+// "Historic" averages, unit+interval frequencies, pending pay). Old tables and
+// columns are left in place, just no longer read.
+function migrateFromV0(db, today) {
+  const hasCol = (table, col) => db.prepare(`PRAGMA table_info(${table})`).all().some(r => r.name === col);
+  const hasTable = name => !!db.prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name=?`).get(name);
+
+  // Bills that used the "Historic" average keep that average as their fixed amount
+  if (hasCol('bills', 'use_average') && hasTable('bill_payments')) {
+    db.exec(`
+      UPDATE bills SET
+        amount = COALESCE((SELECT ROUND(AVG(p.amount)) FROM bill_payments p WHERE p.bill_id = bills.id), amount),
+        use_average = 0
+      WHERE use_average = 1
+    `);
+  }
+
+  // Frequency is now one of weekly/fortnightly/monthly/quarterly/yearly
+  if (hasCol('bills', 'frequency_interval')) {
+    db.exec(`
+      UPDATE bills SET frequency = 'fortnightly', frequency_interval = 1 WHERE frequency = 'weekly'  AND frequency_interval = 2;
+      UPDATE bills SET frequency = 'quarterly',   frequency_interval = 1 WHERE frequency = 'monthly' AND frequency_interval = 3;
+      UPDATE bills SET frequency = 'yearly',      frequency_interval = 1 WHERE frequency = 'monthly' AND frequency_interval = 12;
+      UPDATE bills SET frequency = 'monthly' WHERE frequency = 'monthly_half';
+    `);
+    // Anything still unusual (e.g. "every 10 days"): store as the equivalent fortnightly amount
+    const odd = db.prepare(`
+      SELECT id, amount, frequency, frequency_interval FROM bills
+      WHERE frequency NOT IN ('weekly','fortnightly','monthly','quarterly','yearly') OR frequency_interval != 1
+    `).all();
+    const fix = db.prepare(`UPDATE bills SET amount = ?, frequency = 'fortnightly', frequency_interval = 1 WHERE id = ?`);
+    for (const b of odd) fix.run(perFortnight(b.amount, b.frequency, b.frequency_interval), b.id);
+  }
+
+  // Custom categories are gone: credit-type ones become 'savings', everything else 'bills'
+  if (hasTable('categories')) {
+    db.exec(`
+      UPDATE bills SET category = CASE
+        WHEN category IN ('bills', 'subscriptions', 'savings') THEN category
+        WHEN category IN (SELECT slug FROM categories WHERE type = 'credit') THEN 'savings'
+        ELSE 'bills'
+      END
+    `);
+  }
+
+  // Payee / account details become a free-text note, so nothing is lost
+  if (hasCol('bills', 'payee_id') && hasTable('payees')) {
+    const rows = db.prepare(`
+      SELECT b.id, p.name AS payee, p.bsb, p.number, p.reference, a.name AS account
+      FROM bills b
+      LEFT JOIN payees p ON p.id = b.payee_id
+      LEFT JOIN accounts a ON a.id = b.account_id
+      WHERE (b.payee_id IS NOT NULL OR b.account_id IS NOT NULL) AND (b.notes IS NULL OR b.notes = '')
+    `).all();
+    const setNote = db.prepare('UPDATE bills SET notes = ? WHERE id = ?');
+    for (const r of rows) {
+      const note = [r.payee, r.bsb, r.number, r.reference, r.account && `from ${r.account}`].filter(Boolean).join(' · ');
+      if (note) setNote.run(note, r.id);
     }
   }
 
-  const count = db.prepare('SELECT COUNT(*) as n FROM settings').get();
-  if (count.n === 0) seed(db);
-}
-
-function seed(db) {
-  db.prepare(`INSERT INTO settings (id, pay_amount, next_payday) VALUES (1, 318000, '2026-06-25')`).run();
-
-  const insertAccount = db.prepare('INSERT INTO accounts (name, bsb, number) VALUES (?, ?, ?)');
-  const accA = insertAccount.run('Bank Account A', '062-000', '12345678').lastInsertRowid;
-  const accB = insertAccount.run('Bank Account B', '062-001', '87654321').lastInsertRowid;
-
-  const insertPayee = db.prepare('INSERT INTO payees (name, bsb, number, reference) VALUES (?, ?, ?, ?)');
-  const rayWhite = insertPayee.run('Ray White Real Estate', '062-100', '11223344', 'Tenancy 04-217').lastInsertRowid;
-  const agl      = insertPayee.run('AGL',             null, null, null).lastInsertRowid;
-  const nrma     = insertPayee.run('NRMA',            null, null, null).lastInsertRowid;
-  const sydWater = insertPayee.run('Sydney Water',    null, null, null).lastInsertRowid;
-  const telstra  = insertPayee.run('Telstra',         null, null, null).lastInsertRowid;
-  const netflix  = insertPayee.run('Netflix',         null, null, null).lastInsertRowid;
-  const spotify  = insertPayee.run('Spotify',         null, null, null).lastInsertRowid;
-  const anytime  = insertPayee.run('Anytime Fitness', null, null, null).lastInsertRowid;
-  const adobe    = insertPayee.run('Adobe',           null, null, null).lastInsertRowid;
-  const ubank    = insertPayee.run('UBank Saver',     null, null, null).lastInsertRowid;
-  const ing      = insertPayee.run('ING Savings',     null, null, null).lastInsertRowid;
-
-  const b = db.prepare(`INSERT INTO bills (category,name,amount,frequency,due_day,account_id,payee_id,method,goal_target,goal_saved) VALUES (?,?,?,?,?,?,?,?,?,?)`);
-
-  b.run('bills', 'Rent',             184000, 'monthly',    1,  accA, rayWhite, 'auto',   null, null);
-  b.run('bills', 'Electricity & Gas',  9500, 'monthly',   14,  accA, agl,      'auto',   null, null);
-  b.run('bills', 'Car Insurance',      7500, 'monthly',    8,  accA, nrma,     'auto',   null, null);
-  b.run('bills', 'Water',              5500, 'monthly',   20,  accB, sydWater, 'manual', null, null);
-  b.run('bills', 'Phone',              3500, 'monthly',    5,  accA, telstra,  'auto',   null, null);
-
-  b.run('subscriptions', 'Netflix',  2800, 'monthly', 12, accB, netflix, 'auto',   null, null);
-  b.run('subscriptions', 'Spotify',  1300, 'monthly',  3, accB, spotify, 'auto',   null, null);
-  b.run('subscriptions', 'Gym',      4400, 'monthly',  1, accA, anytime, 'auto',   null, null);
-  b.run('subscriptions', 'Adobe CC', 2000, 'monthly', 18, accB, adobe,   'manual', null, null);
-
-  const g = db.prepare(`INSERT INTO bills (category,name,amount,frequency,account_id,payee_id,method,goal_target,goal_saved) VALUES (?,?,?,?,?,?,?,?,?)`);
-  g.run('savings', 'Emergency Fund', 25000, 'fortnightly', accA, ubank, 'auto', 1000000, 420000);
-  g.run('savings', 'Japan Trip',     20000, 'fortnightly', accA, ubank, 'auto',  600000, 185000);
-  g.run('savings', 'New Car',        15000, 'fortnightly', accA, ing,   'auto', 1500000, 310000);
-  g.run('savings', 'Home Deposit',   10000, 'fortnightly', accA, ing,   'auto', 4000000, 560000);
+  // The old app never advanced next_payday. Skip past stale dates without crediting goals.
+  const s = db.prepare('SELECT next_payday FROM settings WHERE id = 1').get();
+  let next = s.next_payday;
+  while (next < today) next = addDays(next, 14);
+  if (next !== s.next_payday) db.prepare('UPDATE settings SET next_payday = ? WHERE id = 1').run(next);
 }

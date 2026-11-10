@@ -4,12 +4,12 @@ import { getDb } from '../db.js';
 const router = Router();
 
 router.post('/', (req, res) => {
-  const { kind, amount, purpose, destination } = req.body;
+  const { kind, amount, purpose } = req.body;
   if (!['add', 'take'].includes(kind)) return res.status(400).json({ error: 'kind must be add or take' });
   if (!Number.isInteger(amount) || amount <= 0) return res.status(400).json({ error: 'amount must be a positive integer (cents)' });
   const result = getDb().prepare(
-    'INSERT INTO fund_adjustments (kind, amount, purpose, destination) VALUES (?, ?, ?, ?)'
-  ).run(kind, amount, purpose ?? null, destination ?? null);
+    'INSERT INTO fund_adjustments (kind, amount, purpose) VALUES (?, ?, ?)'
+  ).run(kind, amount, purpose || null);
   res.status(201).json({ id: result.lastInsertRowid });
 });
 

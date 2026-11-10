@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bill } from '../types';
-import { getPaydaysInMonth, getDueDates } from '../utils';
+import { getPaydaysInMonth } from '../utils';
 
 interface Props {
   nextPayday: string;
@@ -20,7 +20,7 @@ export default function CalendarCard({ nextPayday, bills }: Props) {
   const offset = (firstDay + 6) % 7;
 
   const paydays = new Set(getPaydaysInMonth(nextPayday, year, month));
-  const dueDays = new Set(getDueDates(bills, year, month));
+  const dueDays = new Set(bills.map(b => b.due_day));
 
   const cells: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   while (cells.length % 7 !== 0) cells.push(null);

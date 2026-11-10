@@ -1,35 +1,42 @@
-// Frequency normalisation → per-fortnight cents
-// frequency is a unit ('daily' | 'weekly' | 'monthly'); interval is "every N units"
-const DAYS_PER_UNIT = { daily: 1, weekly: 7, monthly: 365 / 12 };
+// Budgie is fortnightly-pay only: every bill is normalised to "cents per fortnight".
+// 'daily' is legacy-only (used by the one-off DB migration), not offered in the UI.
+const DAYS = { daily: 1, weekly: 7, fortnightly: 14, monthly: 365 / 12, quarterly: 365 / 4, yearly: 365 };
+
+export const FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'];
+export const CATEGORIES = ['bills', 'subscriptions', 'savings'];
 
 export function perFortnight(amountCents, frequency, interval = 1) {
-  const unitDays = DAYS_PER_UNIT[frequency] ?? DAYS_PER_UNIT.monthly;
-  const totalDays = unitDays * Math.max(1, interval || 1);
-  return Math.round(amountCents * (14 / totalDays));
+  const days = (DAYS[frequency] ?? DAYS.monthly) * Math.max(1, interval || 1);
+  return Math.round(amountCents * (14 / days));
 }
 
-// Detect 3rd-payday months for a given next_payday string
-export function thirdPaydayMonths(nextPaydayISO, count = 6) {
-  const results = [];
-  let date = new Date(nextPaydayISO);
-  const monthlyCounts = {};
+// Local-time YYYY-MM-DD (set TZ on the container if it isn't your timezone)
+export const todayISO = () => new Date().toLocaleDateString('en-CA');
 
-  for (let i = 0; i < count * 10; i++) {
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
-    monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
-    if (monthlyCounts[key] === 3) results.push(new Date(date));
-    if (results.length >= count) break;
-    date = new Date(date.getTime() + 14 * 86400000);
-  }
-  return results;
+export function addDays(iso, n) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
 }
 
-// Compute per-fortnight totals from an array of bill rows, keyed by category slug
-export function computeTotals(bills) {
-  const totals = {};
-  for (const b of bills) {
-    const pf = perFortnight(b.amount, b.frequency, b.frequency_interval);
-    totals[b.category] = (totals[b.category] ?? 0) + pf;
+// Every payday that has passed: credit each savings goal its per-fortnight amount
+// and move next_payday on by 14 days. Safe to call repeatedly.
+export function rollPayday(db, today = todayISO()) {
+  const s = db.prepare('SELECT next_payday FROM settings WHERE id = 1').get();
+  if (!s || today < s.next_payday) return;
+
+  const goals = db.prepare(`SELECT id, amount, frequency FROM bills WHERE category = 'savings'`).all();
+  const credit = db.prepare('UPDATE bills SET goal_saved = COALESCE(goal_saved, 0) + ? WHERE id = ?');
+  db.exec('BEGIN');
+  try {
+    let next = s.next_payday;
+    for (; today >= next; next = addDays(next, 14)) {
+      for (const g of goals) credit.run(perFortnight(g.amount, g.frequency), g.id);
+    }
+    db.prepare('UPDATE settings SET next_payday = ? WHERE id = 1').run(next);
+    db.exec('COMMIT');
+  } catch (e) {
+    db.exec('ROLLBACK');
+    throw e;
   }
-  return totals;
 }

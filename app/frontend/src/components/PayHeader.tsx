@@ -1,146 +1,67 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Totals } from '../types';
-import { fmtAUD, formatDate } from '../utils';
-import { Category } from './CategoryModal';
-
-const FREQ_LABELS: Record<string, string> = {
-  weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly',
-};
+import React, { useState, useEffect } from 'react';
+import { Dashboard } from '../types';
+import { fmtAUD, toCents } from '../utils';
+import { updateSettings } from '../api';
 
 interface Props {
-  totals: Totals;
-  nextPayday: string;
-  frequency: string;
-  pendingPay?: { amount: number; effectiveDate: string } | null;
-  editMode: boolean;
+  data: Dashboard;
   onSaved: () => void;
-  categories: Category[];
+  onToggleTheme: () => void;
 }
 
-export default function PayHeader({ totals, nextPayday, frequency, pendingPay, editMode, onSaved, categories }: Props) {
-  const { pay } = totals;
+// Pay amount and next payday are edited in place: change the field, it saves.
+export default function PayHeader({ data, onSaved, onToggleTheme }: Props) {
+  const [payStr, setPayStr] = useState(String(data.pay / 100));
+  useEffect(() => setPayStr(String(data.pay / 100)), [data.pay]);
 
-  // Draft state for inline editing
-  const [draftPay, setDraftPay]   = useState(String(pay / 100));
-  const [draftFreq, setDraftFreq] = useState(frequency);
-  const [draftDate, setDraftDate] = useState(nextPayday.slice(0, 10));
-
-  // Reset drafts whenever we enter edit mode
-  const prevEdit = useRef(editMode);
-  useEffect(() => {
-    if (editMode && !prevEdit.current) {
-      setDraftPay(String(pay / 100));
-      setDraftFreq(frequency);
-      setDraftDate(nextPayday.slice(0, 10));
-    }
-    // Save when exiting edit mode
-    if (!editMode && prevEdit.current) {
-      const amount = Math.round(parseFloat(draftPay || '0') * 100);
-      fetch('/api/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pay_amount: amount, pay_frequency: draftFreq, next_payday: draftDate }),
-      }).then(onSaved);
-    }
-    prevEdit.current = editMode;
-  }, [editMode]);
-
-  const displayPay  = editMode ? Math.round(parseFloat(draftPay || '0') * 100) : pay;
-  const displayFreq = editMode ? draftFreq : frequency;
-
-  const fieldStyle: React.CSSProperties = {
-    background: 'var(--surface2)', border: '1px solid var(--accent)',
-    borderRadius: 8, color: 'var(--text)', outline: 'none',
-    fontFamily: 'inherit',
-  };
+  const save = (patch: Record<string, unknown>) => updateSettings(patch).then(onSaved);
+  const savePay = () => { const c = toCents(payStr); if (c !== data.pay) save({ pay_amount: c }); };
 
   return (
-    <div style={{
-      background: 'rgba(124,108,240,0.06)',
-      borderRadius: 18, overflow: 'hidden',
-    }}>
-      {/* Section heading */}
+    <div style={{ background: 'rgba(124,108,240,0.06)', borderRadius: 18, overflow: 'hidden' }}>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '12px 26px',
-        background: 'rgba(124,108,240,0.08)',
-        borderBottom: '1px solid rgba(124,108,240,0.18)',
+        display: 'flex', alignItems: 'center', gap: 10, padding: '12px 26px',
+        background: 'rgba(124,108,240,0.08)', borderBottom: '1px solid rgba(124,108,240,0.18)',
       }}>
-        <span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--accent)', flexShrink: 0 }} />
-        <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em' }}>Pay Cycle</div>
-
-        {/* Pending change banner inline */}
-        {pendingPay && !editMode && (
-          <div style={{
-            marginLeft: 12, padding: '3px 10px', borderRadius: 7,
-            background: 'rgba(254,202,87,0.1)', border: '1px solid rgba(254,202,87,0.25)',
-            fontSize: 11.5, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 6,
-          }}>
-            <span>⏳</span>
-            Pay changes to <strong style={{ color: '#feca57', marginLeft: 4 }}>{fmtAUD(pendingPay.amount)}</strong>
-            <span style={{ marginLeft: 4 }}>on {new Date(pendingPay.effectiveDate).toLocaleDateString('en-AU', { day: 'numeric', month: 'long' })}</span>
-          </div>
-        )}
+        <span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--accent)' }} />
+        <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', flex: 1 }}>Fortnightly pay</div>
+        <button onClick={onToggleTheme} title="Switch light/dark" className="btn" style={{ padding: '4px 10px', fontSize: 15 }}>
+          {data.theme === 'dark' ? '☀' : '☾'}
+        </button>
       </div>
 
-      <div style={{ padding: '20px 26px' }}>
-        {/* Frequency label / pill toggle */}
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--muted)' }}>
-          PAY CYCLE
-        </div>
-        {editMode ? (
-          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-            {Object.entries(FREQ_LABELS).map(([v, l]) => {
-              const active = draftFreq === v;
-              return (
-                <button key={v} onClick={() => setDraftFreq(v)} style={{
-                  padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-                  cursor: 'pointer', letterSpacing: '0.04em',
-                  border: active ? 'none' : '1px solid var(--line)',
-                  background: active ? 'var(--accent)' : 'var(--surface2)',
-                  color: active ? '#fff' : 'var(--muted)',
-                }}>{l}</button>
-              );
-            })}
+      <div style={{ padding: '20px 26px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+          <div className="sg" style={{ display: 'flex', alignItems: 'center', fontWeight: 700, fontSize: 44, letterSpacing: '-0.02em' }}>
+            <span style={{ color: 'var(--muted)', marginRight: 2 }}>$</span>
+            <input className="inline-edit sg" inputMode="decimal" title="Click to change your pay"
+              value={payStr}
+              onChange={e => setPayStr(e.target.value.replace(/[^\d.]/g, ''))}
+              onBlur={savePay} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
+              style={{ width: `${Math.max(payStr.length, 4) + 1}ch`, padding: '0 6px' }} />
           </div>
-        ) : (
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--muted)', marginTop: 2 }}>
-            {displayFreq.toUpperCase()}
-          </div>
-        )}
-
-        {/* Pay amount */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginTop: 8 }}>
-          {editMode ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span className="sg" style={{ fontWeight: 700, fontSize: 36, color: 'var(--muted)' }}>$</span>
-              <input
-                value={draftPay}
-                onChange={e => setDraftPay(e.target.value.replace(/[^\d.]/g, ''))}
-                style={{ ...fieldStyle, fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 40, lineHeight: 1, width: 180, padding: '2px 10px' }}
-              />
-            </div>
-          ) : (
-            <div className="sg" style={{ fontWeight: 700, fontSize: 48, lineHeight: 1, letterSpacing: '-0.02em' }}>
-              {fmtAUD(displayPay)}
-            </div>
-          )}
-
-          <div style={{ fontSize: 12.5, color: 'var(--muted)', paddingBottom: editMode ? 6 : 7 }}>
+          <label style={{ fontSize: 12.5, color: 'var(--muted)', paddingBottom: 8 }}>
             next payday<br />
-            {editMode ? (
-              <input
-                type="date"
-                value={draftDate}
-                onChange={e => setDraftDate(e.target.value)}
-                style={{ ...fieldStyle, fontSize: 12.5, fontWeight: 700, padding: '3px 8px', marginTop: 2 }}
-              />
-            ) : (
-              <span style={{ color: 'var(--text)', fontWeight: 700 }}>{formatDate(nextPayday)}</span>
-            )}
-          </div>
+            <input type="date" className="inline-edit" title="Click to change" value={data.nextPayday}
+              onChange={e => e.target.value && save({ next_payday: e.target.value })}
+              style={{ color: 'var(--text)', fontWeight: 700, fontSize: 13, padding: '2px 6px', marginLeft: -6 }} />
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>
+          <Stat label="SET ASIDE" value={fmtAUD(data.setAside)} />
+          <Stat label="LEFT OVER" value={fmtAUD(data.leftover)} color={data.leftover < 0 ? 'var(--negative)' : 'var(--positive)'} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--muted)' }}>{label}</div>
+      <div className="sg" style={{ fontSize: 22, fontWeight: 700, color }}>{value}</div>
     </div>
   );
 }
